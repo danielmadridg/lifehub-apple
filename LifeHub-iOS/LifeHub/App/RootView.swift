@@ -29,6 +29,16 @@ struct RootView: View {
         .background(Theme.bg)
         .font(.sans(17))
         .onChange(of: tab) { _, _ in Haptics.selection() }
+        .gesture(
+            // Deslizar horizontalmente también cambia de pestaña (además de la
+            // barra). Solo cuenta si el gesto es claramente horizontal.
+            DragGesture(minimumDistance: 24)
+                .onEnded { value in
+                    let dx = value.translation.width, dy = value.translation.height
+                    guard abs(dx) > 60, abs(dx) > abs(dy) * 1.8 else { return }
+                    if dx < 0 { tab = min(tab + 1, 4) } else { tab = max(tab - 1, 0) }
+                }
+        )
     }
 }
 

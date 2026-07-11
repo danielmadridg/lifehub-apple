@@ -173,17 +173,30 @@ enum Fmt {
     }()
     static let isoNoFrac = ISO8601DateFormatter()
 
-    /// Parsea fechas ISO del backend (con o sin fracción, con o sin zona).
-    static func date(_ s: String?) -> Date? {
-        guard let s else { return nil }
-        if let d = iso.date(from: s) { return d }
-        if let d = isoNoFrac.date(from: s) { return d }
+    private static let plain: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        if let d = f.date(from: s) { return d }
-        f.dateFormat = "yyyy-MM-dd"
-        return f.date(from: s)
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
+    /// Parsea fechas ISO del backend (con o sin fracción de segundo, con o sin
+    /// zona). El backend suele mandar "2026-06-14T14:33:04.725369" (microsegundos
+    /// y SIN zona), que los ISO8601 formatters no aceptan.
+    static func date(_ s: String?) -> Date? {
+        guard let s, !s.isEmpty else { return nil }
+        if let d = iso.date(from: s) { return d }
+        if let d = isoNoFrac.date(from: s) { return d }
+        if s.contains("T") {
+            // Quita la fracción de segundo (todo tras el punto) y parsea la base.
+            let base = s.split(separator: ".").first.map(String.init) ?? s
+            plain.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            if let d = plain.date(from: base) { return d }
+            plain.dateFormat = "yyyy-MM-dd'T'HH:mm"
+            if let d = plain.date(from: base) { return d }
+        }
+        plain.dateFormat = "yyyy-MM-dd"
+        return plain.date(from: String(s.prefix(10)))
     }
 
     /// Fecha en claro y en español: "4 de julio".

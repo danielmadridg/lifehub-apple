@@ -56,20 +56,22 @@ struct FinanceView: View {
                             )
                             .foregroundStyle(
                                 .linearGradient(
-                                    colors: [Theme.accent.opacity(0.25), Theme.accent.opacity(0.02)],
+                                    colors: [Theme.accent.opacity(0.22), Theme.accent.opacity(0.02)],
                                     startPoint: .top, endPoint: .bottom
                                 )
                             )
-                            .interpolationMethod(.catmullRom)
+                            .interpolationMethod(.monotone)
                             LineMark(
                                 x: .value("Fecha", Fmt.date(p.date) ?? .now),
                                 y: .value("EUR", p.total_eur ?? 0)
                             )
                             .foregroundStyle(Theme.accent)
-                            .interpolationMethod(.catmullRom)
+                            .interpolationMethod(.monotone)
                         }
                         .chartYScale(domain: (lo - pad)...(hi + pad))
+                        .chartYAxis { AxisMarks(position: .leading) }
                         .frame(height: 180)
+                        .clipped()
                         .card()
                     }
                 }

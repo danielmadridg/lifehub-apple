@@ -149,6 +149,7 @@ struct WorkoutView: View {
     @State private var sending = false
     @State private var finishedAll = false
     @State private var totalSets = 0
+    @FocusState private var weightFocused: Bool
 
     var body: some View {
         Group {
@@ -159,7 +160,11 @@ struct WorkoutView: View {
             }
         }
         .containerBackground(Theme.bg, for: .navigation)
-        .onAppear { syncToExercise() }
+        .onAppear {
+            syncToExercise()
+            // Da el foco a la corona para que ajuste el peso sin avisos raros.
+            DispatchQueue.main.async { weightFocused = true }
+        }
         .onDisappear {
             detector.stop()
             store.workout.end()
@@ -208,6 +213,7 @@ struct WorkoutView: View {
                 .font(.system(.body, design: .rounded).weight(.semibold))
                 .foregroundStyle(Theme.accent)
                 .focusable(true)
+                .focused($weightFocused)
                 .digitalCrownRotation($weight, from: 0, through: 300, by: 0.25,
                                       sensitivity: .low, isContinuous: false)
                 .onChange(of: weight) { _, v in

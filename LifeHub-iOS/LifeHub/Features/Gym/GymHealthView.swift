@@ -41,21 +41,60 @@ struct GymHealthView: View {
                 }
 
                 if bodyweight.count > 1 {
+                    let vals = bodyweight.map(\.weight)
+                    let lo = vals.min() ?? 0, hi = vals.max() ?? 1
+                    let pad = max((hi - lo) * 0.2, 0.5)
                     Chart(bodyweight.reversed(), id: \.id) { entry in
                         LineMark(
                             x: .value("Fecha", Fmt.date(entry.at) ?? .now),
                             y: .value("Peso", entry.weight)
                         )
                         .foregroundStyle(Theme.accent)
+                        .interpolationMethod(.monotone)
+                        PointMark(
+                            x: .value("Fecha", Fmt.date(entry.at) ?? .now),
+                            y: .value("Peso", entry.weight)
+                        )
+                        .foregroundStyle(Theme.accent)
                     }
-                    .chartYScale(domain: .automatic(includesZero: false))
+                    .chartYScale(domain: (lo - pad)...(hi + pad))
                     .frame(height: 160)
+                    .clipped()
                     .card()
                 }
-                if let last = bodyweight.first {
-                    Text("Último: \(last.weight.clean) kg · \(Fmt.short(last.at))")
-                        .font(Theme.dCaption)
-                        .foregroundStyle(Theme.muted)
+
+                // Historial: cada pesada con su fecha (deslizar para borrar).
+                if !bodyweight.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(bodyweight) { entry in
+                            HStack {
+                                Text("\(entry.weight.clean) kg")
+                                    .font(Theme.dHeadline)
+                                    .foregroundStyle(Theme.ink)
+                                Spacer()
+                                Text(Fmt.short(entry.at))
+                                    .font(Theme.dCaption)
+                                    .foregroundStyle(Theme.muted)
+                                Button {
+                                    Task {
+                                        _ = try? await API.shared.gymDeleteBodyweight(entry.id)
+                                        Haptics.warning()
+                                        await load()
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 12, weight: .light))
+                                        .foregroundStyle(Theme.muted)
+                                }
+                                .padding(.leading, 8)
+                            }
+                            .padding(.vertical, 10)
+                            if entry.id != bodyweight.last?.id {
+                                Divider().overlay(Theme.line)
+                            }
+                        }
+                    }
+                    .card()
                 }
 
                 // ── Perímetros ──

@@ -17,6 +17,12 @@ struct HomeView: View {
     var pendingTasks: [TaskItem] { tasks.filter { !$0.done } }
     var todayRoutine: GymRoutine? { routines.first { $0.today == true } }
     var todayDiet: DietDay? { diet?.days.first { $0.is_today } }
+    var todayEvents: [CalendarEvent] {
+        events.filter {
+            guard let d = Fmt.date($0.start) else { return false }
+            return Calendar.current.isDateInToday(d)
+        }
+    }
 
     var body: some View {
         Screen(title: greeting, refresh: { await load() }) {
@@ -45,10 +51,10 @@ struct HomeView: View {
                 }
             }
 
-            // ── Agenda ──
-            if !events.isEmpty {
-                SectionHeader(title: "Agenda")
-                ForEach(events.prefix(3), id: \.self) { EventRow(event: $0) }
+            // ── Agenda (solo lo de HOY) ──
+            if !todayEvents.isEmpty {
+                SectionHeader(title: "Agenda de hoy")
+                ForEach(todayEvents, id: \.self) { EventRow(event: $0) }
             }
 
             // ── Estudios (deadline más próxima) ──
