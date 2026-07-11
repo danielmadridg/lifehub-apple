@@ -18,11 +18,13 @@ struct TodayResponse: Codable {
 }
 
 // Una rutina disponible (GET /api/gym/device/routines).
+// `group` es opcional: si el servidor no lo manda (backend antiguo) se trata
+// como "normal" y la app sigue funcionando en vez de fallar al decodificar.
 struct DeviceRoutine: Codable, Identifiable {
     let id: Int
     let name: String
     let today: Bool
-    let group: String  // "normal" | "verano"
+    let group: String?  // "normal" | "verano" | nil
 }
 
 // Respuesta al registrar una serie (POST /api/gym/device/set).
