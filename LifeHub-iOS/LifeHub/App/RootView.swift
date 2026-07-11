@@ -27,6 +27,7 @@ struct RootView: View {
                 .tag(4)
         }
         .background(Theme.bg)
+        .font(.sans(17))
         .onChange(of: tab) { _, _ in Haptics.selection() }
     }
 }

@@ -48,17 +48,6 @@ struct GymView: View {
                         Task { await start(routine: routine) }
                     }
                 }
-                Button {
-                    Haptics.medium()
-                    Task { await start(routine: nil) }
-                } label: {
-                    Label("Entreno libre", systemImage: "plus")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Theme.surface2, in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(Theme.accent)
-                }
 
                 HStack(spacing: 10) {
                     NavigationLink {

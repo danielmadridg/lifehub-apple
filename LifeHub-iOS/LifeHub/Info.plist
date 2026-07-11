@@ -27,6 +27,16 @@
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Para subir fotos de progreso al Gym.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fraunces-Regular.ttf</string>
+		<string>Fraunces-SemiBold.ttf</string>
+		<string>Fraunces-Bold.ttf</string>
+		<string>DMSans-Regular.ttf</string>
+		<string>DMSans-Medium.ttf</string>
+		<string>DMSans-SemiBold.ttf</string>
+		<string>DMSans-Bold.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIUserInterfaceStyle</key>

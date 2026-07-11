@@ -74,12 +74,17 @@ struct ConnectionsView: View {
                 .foregroundStyle(Theme.muted)
 
             if let status {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 12) {
                     ConnectionRow(
                         name: "Google · Gmail y Agenda",
                         connected: status.google.connected,
                         detail: status.google.days_left.map { "\($0) días" }
                     )
+                    Text(status.google.connected
+                         ? "Correo y agenda funcionando."
+                         : "No conecta: renueva el token para volver a leer correo y agenda.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.muted)
                     if !status.google.connected {
                         HButton(haptic: Haptics.medium) {
                             Task { await renew() }
@@ -96,16 +101,19 @@ struct ConnectionsView: View {
                 }
                 .card()
 
-                ConnectionRow(
-                    name: "Epitech · intra",
-                    connected: status.epitech.connected,
-                    detail: status.epitech.days_left.map { "~\($0) días" }
-                )
-                if !status.epitech.connected {
-                    Text("La sesión de Epitech necesita login de Microsoft + 2FA en el ordenador. Pídemelo y lo renovamos.")
+                VStack(alignment: .leading, spacing: 12) {
+                    ConnectionRow(
+                        name: "Epitech · intra",
+                        connected: status.epitech.connected,
+                        detail: status.epitech.days_left.map { "~\($0) días" }
+                    )
+                    Text(status.epitech.connected
+                         ? "Estudios y el coach funcionan."
+                         : "Sesión caída: hay que rehacer el login (Microsoft + 2FA). Dímelo y lo renovamos.")
                         .font(.caption)
                         .foregroundStyle(Theme.muted)
                 }
+                .card()
             } else {
                 SkeletonList(rows: 2)
             }

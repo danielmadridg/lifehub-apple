@@ -31,3 +31,11 @@ targets:
           NSAllowsArbitraryLoads: true
         NSPhotoLibraryUsageDescription: Para subir fotos de progreso al Gym.
         UIUserInterfaceStyle: Dark
+        UIAppFonts:
+          - Fraunces-Regular.ttf
+          - Fraunces-SemiBold.ttf
+          - Fraunces-Bold.ttf
+          - DMSans-Regular.ttf
+          - DMSans-Medium.ttf
+          - DMSans-SemiBold.ttf
+          - DMSans-Bold.ttf
