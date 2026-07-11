@@ -17,6 +17,17 @@ struct TodayResponse: Codable {
     let exercises: [DeviceExercise]
 }
 
+// Un hábito de hoy (GET /api/today) — para marcarlo hecho desde el reloj.
+struct WatchHabit: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let category: String        // water|medicine|exercise|sleep|chore|custom|diet
+    let done_today: Bool
+    let due_today: Bool
+    let next_time: String?
+    let progress_label: String
+}
+
 // Una rutina disponible (GET /api/gym/device/routines).
 // `group` es opcional: si el servidor no lo manda (backend antiguo) se trata
 // como "normal" y la app sigue funcionando en vez de fallar al decodificar.

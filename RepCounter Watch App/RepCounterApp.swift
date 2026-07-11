@@ -6,10 +6,132 @@ struct RepCounterApp: App {
     @StateObject private var store = Store()
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            MainTabView()
                 .environmentObject(store)
                 .background(Theme.bg)
         }
+    }
+}
+
+// Carrusel de pestañas (desliza en horizontal). Gym es la principal (primera).
+struct MainTabView: View {
+    @EnvironmentObject var store: Store
+    @State private var tab = 0
+
+    var body: some View {
+        TabView(selection: $tab) {
+            HomeView().environmentObject(store).tag(0)
+            HabitListView(title: "Rutinas", kind: .routine).tag(1)
+            HabitListView(title: "Comida", kind: .food).tag(2)
+        }
+        .tabViewStyle(.verticalPage)
+    }
+}
+
+// ── Pestaña de hábitos marcables (Rutinas / Comida) ─────────────────────────
+struct HabitListView: View {
+    enum Kind { case routine, food }
+    let title: String
+    let kind: Kind
+
+    @State private var habits: [WatchHabit] = []
+    @State private var loading = true
+    @State private var error = false
+
+    private func belongs(_ h: WatchHabit) -> Bool {
+        kind == .food ? h.category == "diet" : h.category != "diet"
+    }
+    private var mine: [WatchHabit] {
+        habits.filter(belongs).sorted { ($0.done_today ? 1 : 0) < ($1.done_today ? 1 : 0) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if loading {
+                    ProgressView().tint(Theme.accent)
+                } else if error {
+                    Text("Sin conexión")
+                        .font(.system(.body, design: .serif))
+                        .foregroundStyle(Theme.muted)
+                } else if mine.isEmpty {
+                    Text("Nada por hoy")
+                        .font(.system(.body, design: .serif))
+                        .foregroundStyle(Theme.muted)
+                } else {
+                    List {
+                        ForEach(mine) { habit in
+                            HabitToggleRow(habit: habit) { updated in
+                                if let i = habits.firstIndex(where: { $0.id == updated.id }) {
+                                    habits[i] = updated
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(title)
+            .containerBackground(Theme.bg, for: .navigation)
+        }
+        .task { await load() }
+    }
+
+    private func load() async {
+        do {
+            habits = try await API.habitsToday()
+            error = false
+        } catch {
+            self.error = true
+        }
+        loading = false
+    }
+}
+
+struct HabitToggleRow: View {
+    let habit: WatchHabit
+    let onUpdate: (WatchHabit) -> Void
+    @State private var busy = false
+
+    var body: some View {
+        Button {
+            guard !busy else { return }
+            busy = true
+            Task {
+                do {
+                    let updated = habit.done_today ? try await API.undoDone(habit.id)
+                                                    : try await API.markDone(habit.id)
+                    if !habit.done_today {
+                        WKInterfaceDevice.current().play(.success)
+                    } else {
+                        WKInterfaceDevice.current().play(.click)
+                    }
+                    onUpdate(updated)
+                } catch {
+                    WKInterfaceDevice.current().play(.failure)
+                }
+                busy = false
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: habit.done_today ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(habit.done_today ? Theme.gain : Theme.muted)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(habit.name)
+                        .font(.system(.body))
+                        .foregroundStyle(habit.done_today ? Theme.muted : Theme.ink)
+                        .strikethrough(habit.done_today)
+                        .lineLimit(1)
+                    if let t = habit.next_time, habit.due_today, !habit.done_today {
+                        Text(t)
+                            .font(.caption2)
+                            .foregroundStyle(Theme.accent)
+                    }
+                }
+                Spacer()
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

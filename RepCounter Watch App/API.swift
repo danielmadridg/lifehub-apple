@@ -37,4 +37,28 @@ enum API {
         let (data, _) = try await URLSession.shared.data(for: req)
         return try JSONDecoder().decode(SetResult.self, from: data)
     }
+
+    // ── Hábitos (Bearer: los endpoints normales no usan device token) ────────
+    private static func bearerRequest(_ path: String, method: String = "GET") -> URLRequest {
+        var req = URLRequest(url: URL(string: Config.baseURL + path)!)
+        req.httpMethod = method
+        req.setValue("Bearer \(Config.appPassword)", forHTTPHeaderField: "Authorization")
+        req.timeoutInterval = 20
+        return req
+    }
+
+    static func habitsToday() async throws -> [WatchHabit] {
+        let (data, _) = try await URLSession.shared.data(for: bearerRequest("/api/today"))
+        return try JSONDecoder().decode([WatchHabit].self, from: data)
+    }
+
+    static func markDone(_ id: Int) async throws -> WatchHabit {
+        let (data, _) = try await URLSession.shared.data(for: bearerRequest("/api/habits/\(id)/done", method: "POST"))
+        return try JSONDecoder().decode(WatchHabit.self, from: data)
+    }
+
+    static func undoDone(_ id: Int) async throws -> WatchHabit {
+        let (data, _) = try await URLSession.shared.data(for: bearerRequest("/api/habits/\(id)/undo", method: "POST"))
+        return try JSONDecoder().decode(WatchHabit.self, from: data)
+    }
 }
