@@ -329,6 +329,12 @@ struct WorkoutView: View {
                 .disabled(!detector.running)
             }
 
+            if detector.running && detector.manual {
+                Text("Cuenta manual con +/−")
+                    .font(.system(size: 9))
+                    .foregroundStyle(Theme.muted)
+            }
+
             // Peso real de tu app (recomendación), ajustable con la corona
             Text("\(weight, specifier: "%.2f") kg")
                 .font(.system(.body, design: .rounded).weight(.semibold))

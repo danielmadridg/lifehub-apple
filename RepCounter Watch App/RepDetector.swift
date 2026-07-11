@@ -2,74 +2,83 @@ import Combine
 import CoreMotion
 import WatchKit
 
-// Detector de repeticiones v4 — basado en el MOVIMIENTO VERTICAL de la mano
-// (altura), no en la rotación de la muñeca.
+// Detector de repeticiones v5 — por TIPO de movimiento del ejercicio.
 //
-// Por qué: contar por rotación de muñeca falla en muchos ejercicios (press,
-// sentadilla, remo…) donde la muñeca casi no gira. Lo que SÍ es común a casi
-// todo levantamiento es que la mano SUBE y BAJA una vez por repetición. Es lo
-// que hacen las apps tipo "Train": miran el eje vertical del movimiento.
+// Cada ejercicio se cuenta según cómo se mueve la mano:
+//  - .vertical   : la mano sube y baja (press, curl, jalón, elevaciones…). Se
+//                  mide la velocidad VERTICAL (aceleración proyectada sobre la
+//                  gravedad).
+//  - .horizontal : la mano se acerca/aleja del cuerpo (chest press, pec fly,
+//                  seated row, cruces). Se mide la velocidad en el PLANO
+//                  horizontal, sobre su eje principal.
+//  - .manual     : máquinas de pierna donde la muñeca no se mueve. No hay
+//                  auto-conteo: se cuenta con los botones +/−.
 //
-// Cómo:
-//  - Se aísla la aceleración VERTICAL proyectando la aceleración del usuario
-//    sobre el vector gravedad (eje "arriba" del mundo, sin importar cómo tengas
-//    la muñeca).
-//  - Se integra a VELOCIDAD vertical con fuga (paso-alto) para quitar la deriva:
-//    la velocidad oscila +/- una vez por repe (subes y bajas).
-//  - Amplitud adaptativa (envolvente) → el umbral se calibra con TUS repes.
-//  - Máquina de estados con histéresis: cuenta un ciclo completo (sube y baja)
-//    con refractario para no doblar.
-//  - Tic háptico fuerte (.notification) por cada repe.
+// En vertical y horizontal se cuenta una repe por ciclo completo (ida y vuelta)
+// con envolvente adaptativa, histéresis y refractario. Tic háptico fuerte por repe.
 final class RepDetector: ObservableObject {
     @Published var reps = 0
     @Published var running = false
+    @Published var manual = false
+
+    enum Mode { case vertical, horizontal, manual }
 
     struct Profile {
-        var floor: Double        // m/s: amplitud mínima de velocidad vertical
-        var peakFraction: Double // umbral = max(floor, envolvente * esto)
-        var minRep: Double       // s mínimos entre repes (refractario)
+        var mode: Mode
+        var floor: Double        // m/s: amplitud mínima de velocidad
+        var peakFraction: Double
+        var minRep: Double       // s entre repes
     }
 
-    /// Perfil según el ejercicio (heurística por nombre, ES + EN).
+    /// Modo + parámetros según el ejercicio (nombre, ES + EN).
     static func profile(for name: String) -> Profile {
         let n = name.lowercased()
-        // Recorrido grande y rápido (press, sentadilla, peso muerto, dominadas)
-        if n.contains("press") || n.contains("sentadilla") || n.contains("squat")
-            || n.contains("peso muerto") || n.contains("deadlift") || n.contains("hip thrust")
-            || n.contains("dominadas") || n.contains("pull up") || n.contains("jalon")
-            || n.contains("remo") || n.contains("row") {
-            return Profile(floor: 0.10, peakFraction: 0.45, minRep: 0.8)
+
+        // Máquinas de pierna: la muñeca no se mueve → manual.
+        if n.contains("leg extension") || n.contains("leg curl") || n.contains("leg press")
+            || n.contains("extension de cuadriceps") || n.contains("extensión de cuádriceps")
+            || n.contains("curl femoral") || n.contains("femoral")
+            || n.contains("prensa") || n.contains("quad") {
+            return Profile(mode: .manual, floor: 0, peakFraction: 0, minRep: 0)
         }
-        // Aislamiento de brazo/hombro: recorrido más corto (curl, laterales)
-        if n.contains("curl") || n.contains("lateral") || n.contains("fly")
-            || n.contains("aperturas") || n.contains("elevaci") || n.contains("pajaros")
-            || n.contains("face pull") || n.contains("extension") || n.contains("frances")
-            || n.contains("pushdown") || n.contains("patada") {
-            return Profile(floor: 0.07, peakFraction: 0.42, minRep: 0.8)
+
+        // Movimientos horizontales (acercar/alejar del cuerpo).
+        if n.contains("chest press") || n.contains("pec fly") || n.contains("pec deck")
+            || n.contains("cable row") || n.contains("seated row") || n.contains("crossover")
+            || n.contains("cruces") || n.contains("aperturas en polea") {
+            return Profile(mode: .horizontal, floor: 0.08, peakFraction: 0.42, minRep: 0.8)
         }
-        // General
-        return Profile(floor: 0.08, peakFraction: 0.42, minRep: 0.9)
+
+        // Resto: vertical (sube/baja).
+        return Profile(mode: .vertical, floor: 0.08, peakFraction: 0.42, minRep: 0.85)
     }
 
-    private var profile = Profile(floor: 0.08, peakFraction: 0.42, minRep: 0.85)
+    private var profile = Profile(mode: .vertical, floor: 0.08, peakFraction: 0.42, minRep: 0.85)
 
     private let motion = CMMotionManager()
     private let queue = OperationQueue()
 
-    private var meanAcc = 0.0      // media lenta de la aceleración vertical (sesgo)
-    private var vel = 0.0          // velocidad vertical integrada (con fuga)
-    private var envelope = 0.0     // amplitud típica de la velocidad
+    // Integración / detección
+    private var meanAcc = 0.0
+    private var vel = 0.0                       // velocidad a lo largo del eje activo
+    private var velH = SIMD3<Double>(0, 0, 0)   // velocidad horizontal (3D en plano ⊥ g)
+    private var pDir = SIMD3<Double>(0, 0, 0)   // eje horizontal principal
+    private var envelope = 0.0
     private var lastT: TimeInterval = 0
     private var lastRep: TimeInterval = 0
-    private var seenUp = false, seenDown = false
+    private var seenPos = false, seenNeg = false
 
     func start(for exerciseName: String) {
         profile = Self.profile(for: exerciseName)
         reps = 0
-        meanAcc = 0; vel = 0; envelope = 0; lastT = 0; lastRep = 0
-        seenUp = false; seenDown = false
+        meanAcc = 0; vel = 0; velH = .zero; pDir = .zero
+        envelope = 0; lastT = 0; lastRep = 0
+        seenPos = false; seenNeg = false
         running = true
-        guard motion.isDeviceMotionAvailable else { return }
+        manual = profile.mode == .manual
+
+        // En manual no se arranca el sensor: se cuenta con los botones.
+        guard profile.mode != .manual, motion.isDeviceMotionAvailable else { return }
         motion.deviceMotionUpdateInterval = 1.0 / 50.0
         motion.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
             guard let self, let d = data else { return }
@@ -82,42 +91,53 @@ final class RepDetector: ObservableObject {
         let dt = lastT > 0 ? min(0.1, t - lastT) : 1.0 / 50.0
         lastT = t
 
-        // Aceleración vertical del usuario = proyección sobre la gravedad.
-        // (gravedad tiene módulo ~1; el signo no importa para el ciclo.)
-        let a = d.userAcceleration
-        let g = d.gravity
-        let vertAcc = a.x * g.x + a.y * g.y + a.z * g.z   // en g
+        let a = SIMD3(d.userAcceleration.x, d.userAcceleration.y, d.userAcceleration.z)
+        let g = SIMD3(d.gravity.x, d.gravity.y, d.gravity.z)  // |g| ~ 1
 
-        // Paso-alto: quita el sesgo lento.
-        meanAcc += 0.02 * (vertAcc - meanAcc)
-        let aHP = (vertAcc - meanAcc) * 9.81               // a m/s²
+        let s: Double
+        if profile.mode == .horizontal {
+            // Aceleración en el plano horizontal (quita la componente vertical).
+            let vertComp = dot(a, g)
+            let aH = (a - g * vertComp) * 9.81
+            velH = velH * 0.95 + aH * dt
+            // Eje principal = EMA de la dirección de la velocidad horizontal.
+            let speed = length(velH)
+            if speed > 1e-4 {
+                let dir = velH / speed
+                pDir = pDir + 0.05 * (dir - pDir)
+                if length(pDir) > 1e-4 { pDir = normalize(pDir) }
+            }
+            s = dot(velH, pDir)   // velocidad con signo a lo largo del eje del ejercicio
+        } else {
+            // Vertical: aceleración proyectada sobre la gravedad.
+            let vertAcc = dot(a, g)
+            meanAcc += 0.02 * (vertAcc - meanAcc)
+            let aHP = (vertAcc - meanAcc) * 9.81
+            vel = vel * 0.95 + aHP * dt
+            s = vel
+        }
 
-        // Integra a velocidad con fuga (evita que la deriva la dispare).
-        vel = vel * 0.95 + aHP * dt
-
-        // Envolvente adaptativa del tamaño de la oscilación de velocidad.
-        let mag = abs(vel)
+        // Envolvente adaptativa.
+        let mag = abs(s)
         if mag > envelope { envelope += 0.15 * (mag - envelope) }
         else { envelope += 0.02 * (mag - envelope) }
 
         let hi = max(profile.floor, envelope * profile.peakFraction)
         let lo = hi * 0.30
 
-        // Histéresis: ver una fase de subida y otra de bajada (o al revés) y
-        // volver a cruzar el centro = una repetición.
-        if vel > hi { seenUp = true }
-        if vel < -hi { seenDown = true }
+        if s > hi { seenPos = true }
+        if s < -hi { seenNeg = true }
 
-        if abs(vel) < lo, seenUp, seenDown {
+        if abs(s) < lo, seenPos, seenNeg {
             if t - lastRep > profile.minRep, envelope > profile.floor * 0.8 {
                 lastRep = t
-                seenUp = false; seenDown = false
+                seenPos = false; seenNeg = false
                 DispatchQueue.main.async {
                     self.reps += 1
                     WKInterfaceDevice.current().play(.notification)
                 }
             } else {
-                seenUp = false; seenDown = false
+                seenPos = false; seenNeg = false
             }
         }
     }
@@ -127,8 +147,9 @@ final class RepDetector: ObservableObject {
         motion.stopDeviceMotionUpdates()
     }
 
-    /// Corrección manual (+/-) si contó de más o de menos.
+    /// Corrección manual (+/-). En ejercicios .manual es la única forma de contar.
     func adjust(_ delta: Int) {
         reps = max(0, reps + delta)
+        if delta > 0 { WKInterfaceDevice.current().play(.click) }
     }
 }
