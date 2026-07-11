@@ -31,6 +31,10 @@ targets:
           NSAllowsArbitraryLoads: true
         NSPhotoLibraryUsageDescription: Para subir fotos de progreso al Gym.
         UIUserInterfaceStyle: Dark
+        LSApplicationQueriesSchemes:
+          - whatsapp
+          - comgooglemaps
+          - googlegmail
         UIAppFonts:
           - Fraunces-Regular.ttf
           - Fraunces-SemiBold.ttf

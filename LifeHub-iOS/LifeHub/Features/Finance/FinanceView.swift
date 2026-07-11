@@ -42,20 +42,33 @@ struct FinanceView: View {
                     }
                     .card()
 
-                    if summary.history.count > 1 {
-                        Chart(summary.history.filter { $0.total_eur != nil }, id: \.date) { p in
+                    let points = summary.history.filter { $0.total_eur != nil }
+                    if points.count > 1 {
+                        let vals = points.compactMap(\.total_eur)
+                        let lo = vals.min() ?? 0, hi = vals.max() ?? 1
+                        // Margen del 15% del rango (o ±1% si es casi plano) para
+                        // que las variaciones pequeñas se vean bien, no planas.
+                        let pad = max((hi - lo) * 0.15, hi * 0.01)
+                        Chart(points, id: \.date) { p in
                             AreaMark(
                                 x: .value("Fecha", Fmt.date(p.date) ?? .now),
                                 y: .value("EUR", p.total_eur ?? 0)
                             )
-                            .foregroundStyle(Theme.accent.opacity(0.15))
+                            .foregroundStyle(
+                                .linearGradient(
+                                    colors: [Theme.accent.opacity(0.25), Theme.accent.opacity(0.02)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
+                            .interpolationMethod(.catmullRom)
                             LineMark(
                                 x: .value("Fecha", Fmt.date(p.date) ?? .now),
                                 y: .value("EUR", p.total_eur ?? 0)
                             )
                             .foregroundStyle(Theme.accent)
+                            .interpolationMethod(.catmullRom)
                         }
-                        .chartYScale(domain: .automatic(includesZero: false))
+                        .chartYScale(domain: (lo - pad)...(hi + pad))
                         .frame(height: 180)
                         .card()
                     }

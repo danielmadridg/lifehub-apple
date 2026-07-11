@@ -8,13 +8,13 @@ struct SettingsView: View {
                 .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.muted)
 
-            SettingsLink(icon: "dumbbell.fill", title: "Rutinas de gym",
+            SettingsLink(icon: "dumbbell", title: "Rutinas de gym",
                          hint: "Crear y editar rutinas y ejercicios") { RoutineManagerView() }
-            SettingsLink(icon: "waveform.path.ecg", title: "Hábitos y comidas",
+            SettingsLink(icon: "checklist.unchecked", title: "Hábitos y comidas",
                          hint: "Crear, editar o pausar tus rutinas diarias") { HabitManagerView() }
-            SettingsLink(icon: "cart.fill", title: "Lista de la compra",
+            SettingsLink(icon: "cart", title: "Lista de la compra",
                          hint: "Añadir o quitar productos") { ShoppingScreen() }
-            SettingsLink(icon: "envelope.fill", title: "Conexiones",
+            SettingsLink(icon: "envelope", title: "Conexiones",
                          hint: "Token de Google y sesión de Epitech") { ConnectionsView() }
         }
     }
@@ -32,7 +32,7 @@ struct SettingsLink<Destination: View>: View {
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .font(Theme.dTitle3)
+                    .font(.system(size: 18, weight: .light))
                     .foregroundStyle(Theme.accent)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
