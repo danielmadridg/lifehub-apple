@@ -2,25 +2,26 @@ import Combine
 import CoreMotion
 import WatchKit
 
-// Detector de repeticiones v9 — pipeline tipo RecoFit / uLift.
+// Detector de repeticiones v10 — pipeline tipo RecoFit/uLift + gestos.
 //
-// Basado en la literatura de conteo de repes con IMU de muñeca (RecoFit, uLift
-// y patentes de Apple/otros). Pasos:
-//  1. Aceleración del usuario (sin gravedad) a 50 Hz.
-//  2. Paso-alto → quita sesgo/deriva lenta.
-//  3. Integra a velocidad + paso-alto de nuevo → señal de velocidad de banda de
-//     repe SIN deriva (esto evita las ráfagas de conteo).
-//  4. PCA en tiempo real (iteración de potencia): proyecta los 3 ejes al EJE
-//     PRINCIPAL del movimiento → 1 señal. Capta bien el arco del pec fly y la
-//     línea del chest press sin depender de un eje fijo.
-//  5. Detección de ciclo con histéresis: la velocidad cruza cero en cada extremo
-//     del recorrido → cuenta una repe por ciclo completo, con refractario.
+// Conteo (RepDetector): aceleración → paso-alto → integra a velocidad →
+// paso-alto (sin deriva) → PCA en tiempo real (eje principal del movimiento) →
+// conteo de ciclos por histéresis. Capta el arco del pec fly y la línea del
+// chest press sin fijar un eje.
 //
-//  .manual: máquinas de pierna (la muñeca no se mueve) → se cuenta con +/−.
+// Novedades:
+//  - Monitoriza el sensor SIEMPRE que la vista está abierta (aunque no cuentes),
+//    para detectar una SACUDIDA de muñeca → empezar/terminar serie sin tocar la
+//    pantalla.
+//  - 1 s de gracia al empezar la serie: ignora el movimiento mientras recolocas
+//    las manos (y deja calentar los filtros y el PCA → cuenta desde la 1ª repe).
+//
+//  .manual: máquinas de pierna → se cuenta con +/− (pero la sacudida vale igual).
 final class RepDetector: ObservableObject {
     @Published var reps = 0
-    @Published var running = false
+    @Published var running = false      // ¿contando una serie?
     @Published var manual = false
+    @Published var shakeCount = 0       // sube al detectar una sacudida de muñeca
 
     enum Mode { case auto, manual }
     struct Profile { var mode: Mode; var floor: Double; var frac: Double; var minRep: Double }
@@ -37,9 +38,14 @@ final class RepDetector: ObservableObject {
     }
 
     private var profile = Profile(mode: .auto, floor: 0.045, frac: 0.40, minRep: 0.7)
+    private let graceStart = 1.0        // s de gracia tras empezar la serie
 
     private let motion = CMMotionManager()
     private let queue = OperationQueue()
+
+    // Estado de conteo
+    private var counting = false
+    private var setStartT: TimeInterval = -1
 
     // Filtros (por eje)
     private var aPrev = [0.0, 0.0, 0.0]
@@ -56,17 +62,15 @@ final class RepDetector: ObservableObject {
     private var seenPos = false, seenNeg = false
     private var lastRep: TimeInterval = 0
     private var lastT: TimeInterval = 0
+    // Detección de sacudida
+    private var spikeTimes: [TimeInterval] = []
+    private var lastShake: TimeInterval = 0
 
-    func start(for exerciseName: String) {
-        profile = Self.profile(for: exerciseName)
-        reps = 0
-        aPrev = [0,0,0]; aHP = [0,0,0]; vel = [0,0,0]; velPrev = [0,0,0]; velHP = [0,0,0]
-        c00 = 0; c01 = 0; c02 = 0; c11 = 0; c12 = 0; c22 = 0; pc = [1,0,0]
-        sm = 0; envelope = 0; seenPos = false; seenNeg = false; lastRep = 0; lastT = 0
-        running = true
-        manual = profile.mode == .manual
+    // ── Ciclo de vida ────────────────────────────────────────────────────────
 
-        guard profile.mode != .manual, motion.isDeviceMotionAvailable else { return }
+    /// Empieza a leer el sensor (para detectar sacudidas), sin contar todavía.
+    func startMonitoring() {
+        guard motion.isDeviceMotionAvailable, !motion.isDeviceMotionActive else { return }
         motion.deviceMotionUpdateInterval = 1.0 / 50.0
         motion.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
             guard let self, let d = data else { return }
@@ -74,55 +78,85 @@ final class RepDetector: ObservableObject {
         }
     }
 
+    func stopMonitoring() {
+        counting = false
+        running = false
+        motion.stopDeviceMotionUpdates()
+    }
+
+    /// Empieza a contar una serie del ejercicio dado.
+    func beginSet(for exerciseName: String) {
+        profile = Self.profile(for: exerciseName)
+        reps = 0
+        aPrev = [0,0,0]; aHP = [0,0,0]; vel = [0,0,0]; velPrev = [0,0,0]; velHP = [0,0,0]
+        c00 = 0; c01 = 0; c02 = 0; c11 = 0; c12 = 0; c22 = 0; pc = [1,0,0]
+        sm = 0; envelope = 0; seenPos = false; seenNeg = false; lastRep = 0
+        setStartT = -1
+        counting = true
+        running = true
+        manual = profile.mode == .manual
+        startMonitoring()   // por si no estaba activo
+    }
+
+    /// Termina de contar (sigue monitorizando para la siguiente sacudida).
+    func endSet() {
+        counting = false
+        running = false
+    }
+
+    // ── Proceso por muestra ──────────────────────────────────────────────────
+
     private func process(_ d: CMDeviceMotion) {
         let t = d.timestamp
         let dt = lastT > 0 ? min(0.1, t - lastT) : 1.0 / 50.0
         lastT = t
 
+        detectShake(d, t: t)
+
+        guard counting, !manual else { return }
+
+        // Gracia inicial: deja calentar filtros/PCA sin contar (recolocas manos).
+        if setStartT < 0 { setStartT = t }
+        let warming = (t - setStartT) < graceStart
+
         let a = [d.userAcceleration.x, d.userAcceleration.y, d.userAcceleration.z]
 
-        // Paso-alto de la aceleración (RC ~1s) → quita sesgo.
-        let hpA = 1.0 / (1.0 + dt)              // ≈0.98
+        let hpA = 1.0 / (1.0 + dt)
+        let hpV = 1.5 / (1.5 + dt)
         for i in 0..<3 {
             aHP[i] = hpA * (aHP[i] + a[i] - aPrev[i])
             aPrev[i] = a[i]
-            // Integra a velocidad y paso-alto (RC ~1.5s) → sin deriva.
             vel[i] += aHP[i] * 9.81 * dt
-            let hpV = 1.5 / (1.5 + dt)           // ≈0.987
             velHP[i] = hpV * (velHP[i] + vel[i] - velPrev[i])
             velPrev[i] = vel[i]
         }
 
-        // Covarianza incremental de la velocidad (ventana ~1s).
-        let x = velHP, aCov = 0.02
-        c00 += aCov * (x[0]*x[0] - c00); c01 += aCov * (x[0]*x[1] - c01); c02 += aCov * (x[0]*x[2] - c02)
-        c11 += aCov * (x[1]*x[1] - c11); c12 += aCov * (x[1]*x[2] - c12); c22 += aCov * (x[2]*x[2] - c22)
-        // Iteración de potencia: pc ← normalize(C·pc). Converge al eje principal.
-        let m0 = c00*pc[0] + c01*pc[1] + c02*pc[2]
-        let m1 = c01*pc[0] + c11*pc[1] + c12*pc[2]
-        let m2 = c02*pc[0] + c12*pc[1] + c22*pc[2]
-        let mn = (m0*m0 + m1*m1 + m2*m2).squareRoot()
-        if mn > 1e-9 {
-            var nv = [m0/mn, m1/mn, m2/mn]
-            // Continuidad de signo (el autovector puede invertirse).
-            if nv[0]*pc[0] + nv[1]*pc[1] + nv[2]*pc[2] < 0 { nv = [-nv[0], -nv[1], -nv[2]] }
-            pc = nv
+        // Covarianza (convergencia rápida) + iteración de potencia (x2).
+        let x = velHP, aCov = 0.04
+        c00 += aCov*(x[0]*x[0]-c00); c01 += aCov*(x[0]*x[1]-c01); c02 += aCov*(x[0]*x[2]-c02)
+        c11 += aCov*(x[1]*x[1]-c11); c12 += aCov*(x[1]*x[2]-c12); c22 += aCov*(x[2]*x[2]-c22)
+        for _ in 0..<2 {
+            let m0 = c00*pc[0]+c01*pc[1]+c02*pc[2]
+            let m1 = c01*pc[0]+c11*pc[1]+c12*pc[2]
+            let m2 = c02*pc[0]+c12*pc[1]+c22*pc[2]
+            let mn = (m0*m0+m1*m1+m2*m2).squareRoot()
+            if mn > 1e-9 {
+                var nv = [m0/mn, m1/mn, m2/mn]
+                if nv[0]*pc[0]+nv[1]*pc[1]+nv[2]*pc[2] < 0 { nv = [-nv[0], -nv[1], -nv[2]] }
+                pc = nv
+            }
         }
 
-        // Proyección a 1D + suavizado ligero.
         let s = velHP[0]*pc[0] + velHP[1]*pc[1] + velHP[2]*pc[2]
         sm = 0.4 * s + 0.6 * sm
 
-        // Envolvente adaptativa.
         let mag = abs(sm)
-        if mag > envelope { envelope += 0.15 * (mag - envelope) }
-        else { envelope += 0.02 * (mag - envelope) }
+        if mag > envelope { envelope += 0.15*(mag-envelope) } else { envelope += 0.02*(mag-envelope) }
+
+        if warming { return }   // filtros calientes, pero aún no contamos
 
         let hi = max(profile.floor, envelope * profile.frac)
         let lo = hi * 0.30
-
-        // La velocidad cruza cero en cada EXTREMO del recorrido; una repe = un
-        // ciclo completo (subió/avanzó y volvió).
         if sm > hi { seenPos = true }
         if sm < -hi { seenNeg = true }
         if abs(sm) < lo, seenPos, seenNeg {
@@ -139,9 +173,26 @@ final class RepDetector: ObservableObject {
         }
     }
 
-    func stop() {
-        running = false
-        motion.stopDeviceMotionUpdates()
+    /// Sacudida = varios picos fuertes y rápidos (mucho más violentos que una
+    /// repe, que es lenta y suave), en < ~0.9 s.
+    private func detectShake(_ d: CMDeviceMotion, t: TimeInterval) {
+        let a = d.userAcceleration, r = d.rotationRate
+        let acc = (a.x*a.x + a.y*a.y + a.z*a.z).squareRoot()
+        let rot = (r.x*r.x + r.y*r.y + r.z*r.z).squareRoot()
+        if acc > 1.6 || rot > 9.0 {
+            if spikeTimes.last.map({ t - $0 > 0.08 }) ?? true {  // separa picos
+                spikeTimes.append(t)
+            }
+        }
+        spikeTimes.removeAll { t - $0 > 0.9 }
+        if spikeTimes.count >= 4, t - lastShake > 1.5 {
+            lastShake = t
+            spikeTimes.removeAll()
+            DispatchQueue.main.async {
+                WKInterfaceDevice.current().play(.success)
+                self.shakeCount += 1
+            }
+        }
     }
 
     func adjust(_ delta: Int) {

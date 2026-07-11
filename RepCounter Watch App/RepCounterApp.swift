@@ -284,13 +284,21 @@ struct WorkoutView: View {
         .containerBackground(Theme.bg, for: .navigation)
         .onAppear {
             syncToExercise()
+            detector.startMonitoring()   // escucha sacudidas aunque no cuente
             // Da el foco a la corona para que ajuste el peso sin avisos raros.
             DispatchQueue.main.async { weightFocused = true }
         }
         .onDisappear {
-            detector.stop()
+            detector.stopMonitoring()
             store.workout.end()
         }
+        .onChange(of: detector.shakeCount) { _, _ in handleShake() }
+    }
+
+    /// Sacudir la muñeca empieza o termina la serie (sin tocar la pantalla).
+    private func handleShake() {
+        guard !finishedAll, !sending else { return }
+        if detector.running { finishSet() } else { startSet() }
     }
 
     private var exercise: DeviceExercise { store.exercises[index] }
@@ -367,6 +375,9 @@ struct WorkoutView: View {
                 .buttonStyle(.borderedProminent).tint(Theme.gain).foregroundStyle(.black)
                 .disabled(sending)
             }
+            Text("o sacude la muñeca")
+                .font(.system(size: 9))
+                .foregroundStyle(Theme.muted)
         }
         .padding(.horizontal, 2)
     }
@@ -414,11 +425,11 @@ struct WorkoutView: View {
             await store.workout.requestAuth()
             store.workout.start()
         }
-        detector.start(for: exercise.name)
+        detector.beginSet(for: exercise.name)
     }
 
     private func finishSet() {
-        detector.stop()
+        detector.endSet()
         store.workout.end()
         let reps = detector.reps
         guard reps > 0 else {
