@@ -1,0 +1,468 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		05875ABFC6AD152C36364E1A /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9239521772533CD9293208 /* HomeView.swift */; };
+		0F3B69CA4693579391FC9142 /* NutritionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E7D68B0AF5FEA4D0916B1F /* NutritionView.swift */; };
+		149CBF04C2FEEB47D3C36C29 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D9A27D8FB53778E62B80D /* SettingsView.swift */; };
+		17E51823C0BC48F4D3C1F1C1 /* GymView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D78C1E9329F151B1056927 /* GymView.swift */; };
+		2323A22762918D2172063FD0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B3805422377429A64D2C6 /* Keychain.swift */; };
+		2C8F72A93A1E6AF101957AA3 /* LifeHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369926010C3173D2CCEC448C /* LifeHubApp.swift */; };
+		306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */; };
+		34FA71130DEF3A3135E35099 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760FFCF2C87B885444011A11 /* APIClient.swift */; };
+		49AC3E4F2F95D7A0AE303134 /* StudiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460480BDE0779A2DC333C487 /* StudiesView.swift */; };
+		543ADA0ADEB1743F9A54CFCB /* GymHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20740795A95C4FB9CC690002 /* GymHealthView.swift */; };
+		59AD1389652775679CC91DE3 /* Me.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9595279D6D2FB5739C65A80 /* Me.swift */; };
+		6116ED645341C3ADD48C4EFB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E59ADB0C674A664536FDA5 /* Theme.swift */; };
+		90EC993FE0D97724085C2908 /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941F31B5D8CB075E85DA95B5 /* FinanceView.swift */; };
+		BE3BC8EA231ACD9644F1E464 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155117F5227D016AB83797FA /* Components.swift */; };
+		BFC5FF771B123691916B5B77 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B256F69F68CAC92B0847C4 /* Models.swift */; };
+		C08E87BDE3D594A9395BA96D /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C0362133DE518DA3B0738D /* TasksView.swift */; };
+		CE9B38C317D2103532B3E7D6 /* GymTrainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */; };
+		D21E7CE7780713137FA2318D /* GymProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */; };
+		D50FE09B6AB1D85D8C560256 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B998A2483F0418307D1CBB6 /* CalendarView.swift */; };
+		D9005D446AE34B4C54B512DD /* AuthGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */; };
+		E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA8E90D1B9237D3E72B3B2E /* RootView.swift */; };
+		E5FD9B9F406AD5A30A5D12EC /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EE0D43E2F8F314A2217777 /* MailView.swift */; };
+		E7C314B6BB12752AECAE35B0 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DD10A054DCBB9A91550710 /* Endpoints.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
+		0E9239521772533CD9293208 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthGateView.swift; sourceTree = "<group>"; };
+		0FA8E90D1B9237D3E72B3B2E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		14C0362133DE518DA3B0738D /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
+		155117F5227D016AB83797FA /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		1A7D9A27D8FB53778E62B80D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		20740795A95C4FB9CC690002 /* GymHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymHealthView.swift; sourceTree = "<group>"; };
+		25EE0D43E2F8F314A2217777 /* MailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
+		32D78C1E9329F151B1056927 /* GymView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymView.swift; sourceTree = "<group>"; };
+		35E59ADB0C674A664536FDA5 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		369926010C3173D2CCEC448C /* LifeHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeHubApp.swift; sourceTree = "<group>"; };
+		3F3850097190054ED7E82A96 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		45DD10A054DCBB9A91550710 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
+		460480BDE0779A2DC333C487 /* StudiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudiesView.swift; sourceTree = "<group>"; };
+		6B998A2483F0418307D1CBB6 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		760FFCF2C87B885444011A11 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymTrainView.swift; sourceTree = "<group>"; };
+		83B256F69F68CAC92B0847C4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		941F31B5D8CB075E85DA95B5 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
+		AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymProgressView.swift; sourceTree = "<group>"; };
+		D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LifeHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0E7D68B0AF5FEA4D0916B1F /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
+		E9595279D6D2FB5739C65A80 /* Me.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Me.swift; sourceTree = "<group>"; };
+		EA0B3805422377429A64D2C6 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1594FFD2BD02B8186BD20EA7 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				1CE25AAE024D20311DD9DD4E /* Finance */,
+				6E498599C3D5E651F220009C /* Gym */,
+				B0FF9FB9F549B9EB02FFCCA2 /* Home */,
+				F660E1440B3FA2348B70E433 /* Modules */,
+				249EDC8ED63411BC99ADEEDD /* Nutrition */,
+				E063701EED371EDE2222234D /* Routines */,
+				883605D054D1497535F3BB2C /* Settings */,
+				25D87AC41A539C4572B399CF /* Tasks */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		1CE25AAE024D20311DD9DD4E /* Finance */ = {
+			isa = PBXGroup;
+			children = (
+				941F31B5D8CB075E85DA95B5 /* FinanceView.swift */,
+			);
+			path = Finance;
+			sourceTree = "<group>";
+		};
+		249EDC8ED63411BC99ADEEDD /* Nutrition */ = {
+			isa = PBXGroup;
+			children = (
+				E0E7D68B0AF5FEA4D0916B1F /* NutritionView.swift */,
+			);
+			path = Nutrition;
+			sourceTree = "<group>";
+		};
+		25D87AC41A539C4572B399CF /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				14C0362133DE518DA3B0738D /* TasksView.swift */,
+			);
+			path = Tasks;
+			sourceTree = "<group>";
+		};
+		6A60CF75E0CC831E605A609A /* LifeHub */ = {
+			isa = PBXGroup;
+			children = (
+				3F3850097190054ED7E82A96 /* Info.plist */,
+				BF84C3914F1F10A4E3ED20E7 /* App */,
+				DD94EDDC020CECAD813EECDB /* Core */,
+				1594FFD2BD02B8186BD20EA7 /* Features */,
+			);
+			path = LifeHub;
+			sourceTree = "<group>";
+		};
+		6E498599C3D5E651F220009C /* Gym */ = {
+			isa = PBXGroup;
+			children = (
+				20740795A95C4FB9CC690002 /* GymHealthView.swift */,
+				AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */,
+				7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */,
+				32D78C1E9329F151B1056927 /* GymView.swift */,
+			);
+			path = Gym;
+			sourceTree = "<group>";
+		};
+		8177E4B7E8CE208A466E9666 = {
+			isa = PBXGroup;
+			children = (
+				6A60CF75E0CC831E605A609A /* LifeHub */,
+				F8A5CD15100BD105157AA24D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		883605D054D1497535F3BB2C /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				1A7D9A27D8FB53778E62B80D /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B0FF9FB9F549B9EB02FFCCA2 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				0E9239521772533CD9293208 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		BF84C3914F1F10A4E3ED20E7 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */,
+				369926010C3173D2CCEC448C /* LifeHubApp.swift */,
+				0FA8E90D1B9237D3E72B3B2E /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		DD94EDDC020CECAD813EECDB /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				760FFCF2C87B885444011A11 /* APIClient.swift */,
+				155117F5227D016AB83797FA /* Components.swift */,
+				45DD10A054DCBB9A91550710 /* Endpoints.swift */,
+				EA0B3805422377429A64D2C6 /* Keychain.swift */,
+				E9595279D6D2FB5739C65A80 /* Me.swift */,
+				83B256F69F68CAC92B0847C4 /* Models.swift */,
+				35E59ADB0C674A664536FDA5 /* Theme.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		E063701EED371EDE2222234D /* Routines */ = {
+			isa = PBXGroup;
+			children = (
+				0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */,
+			);
+			path = Routines;
+			sourceTree = "<group>";
+		};
+		F660E1440B3FA2348B70E433 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				6B998A2483F0418307D1CBB6 /* CalendarView.swift */,
+				25EE0D43E2F8F314A2217777 /* MailView.swift */,
+				460480BDE0779A2DC333C487 /* StudiesView.swift */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		F8A5CD15100BD105157AA24D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CBFA8B653EEADD8A4BB40D21 /* LifeHub */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A456AF1BC06CF497140E7E0A /* Build configuration list for PBXNativeTarget "LifeHub" */;
+			buildPhases = (
+				9032BDBE59CDD61B7D3DF1DF /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LifeHub;
+			packageProductDependencies = (
+			);
+			productName = LifeHub;
+			productReference = D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1F122FC34E5FD023F496B2A9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 14B2C1D6FC8E9CBA3411BECB /* Build configuration list for PBXProject "LifeHub" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8177E4B7E8CE208A466E9666;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F8A5CD15100BD105157AA24D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CBFA8B653EEADD8A4BB40D21 /* LifeHub */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9032BDBE59CDD61B7D3DF1DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34FA71130DEF3A3135E35099 /* APIClient.swift in Sources */,
+				D9005D446AE34B4C54B512DD /* AuthGateView.swift in Sources */,
+				D50FE09B6AB1D85D8C560256 /* CalendarView.swift in Sources */,
+				BE3BC8EA231ACD9644F1E464 /* Components.swift in Sources */,
+				E7C314B6BB12752AECAE35B0 /* Endpoints.swift in Sources */,
+				90EC993FE0D97724085C2908 /* FinanceView.swift in Sources */,
+				543ADA0ADEB1743F9A54CFCB /* GymHealthView.swift in Sources */,
+				D21E7CE7780713137FA2318D /* GymProgressView.swift in Sources */,
+				CE9B38C317D2103532B3E7D6 /* GymTrainView.swift in Sources */,
+				17E51823C0BC48F4D3C1F1C1 /* GymView.swift in Sources */,
+				05875ABFC6AD152C36364E1A /* HomeView.swift in Sources */,
+				2323A22762918D2172063FD0 /* Keychain.swift in Sources */,
+				2C8F72A93A1E6AF101957AA3 /* LifeHubApp.swift in Sources */,
+				E5FD9B9F406AD5A30A5D12EC /* MailView.swift in Sources */,
+				59AD1389652775679CC91DE3 /* Me.swift in Sources */,
+				BFC5FF771B123691916B5B77 /* Models.swift in Sources */,
+				0F3B69CA4693579391FC9142 /* NutritionView.swift in Sources */,
+				E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */,
+				306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */,
+				149CBF04C2FEEB47D3C36C29 /* SettingsView.swift in Sources */,
+				49AC3E4F2F95D7A0AE303134 /* StudiesView.swift in Sources */,
+				C08E87BDE3D594A9395BA96D /* TasksView.swift in Sources */,
+				6116ED645341C3ADD48C4EFB /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		60D78E85A493F54E78DEA195 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		83F887A25DFBA237D3BC0D46 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		BF78A38846908E8E1449FEF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = LifeHub/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daniel.lifehub;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		E92F7CB2D976E4ADACA7F22B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = LifeHub/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daniel.lifehub;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		14B2C1D6FC8E9CBA3411BECB /* Build configuration list for PBXProject "LifeHub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60D78E85A493F54E78DEA195 /* Debug */,
+				83F887A25DFBA237D3BC0D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A456AF1BC06CF497140E7E0A /* Build configuration list for PBXNativeTarget "LifeHub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E92F7CB2D976E4ADACA7F22B /* Debug */,
+				BF78A38846908E8E1449FEF6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1F122FC34E5FD023F496B2A9 /* Project object */;
+}

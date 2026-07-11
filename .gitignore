@@ -1,0 +1,19 @@
+# Xcode build cache
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# El web app tiene su propio repo git en life-hub/
+life-hub/
+
+# Credenciales y secretos
+*.pem
+*.p12
+*.mobileprovision

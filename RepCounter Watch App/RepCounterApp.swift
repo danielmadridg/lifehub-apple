@@ -1,0 +1,340 @@
+import SwiftUI
+import WatchKit
+
+@main
+struct RepCounterApp: App {
+    @StateObject private var store = Store()
+    var body: some Scene {
+        WindowGroup {
+            HomeView()
+                .environmentObject(store)
+                .background(Theme.bg)
+        }
+    }
+}
+
+// ── Inicio: rutina de hoy + Empezar (estilo Life Hub) ───────────────────────
+struct HomeView: View {
+    @EnvironmentObject var store: Store
+    @State private var started = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 8) {
+                if store.loading {
+                    ProgressView().tint(Theme.accent)
+                } else if let error = store.error {
+                    Text(error)
+                        .font(.system(.body, design: .serif))
+                        .foregroundStyle(Theme.muted)
+                        .multilineTextAlignment(.center)
+                } else if store.exercises.isEmpty {
+                    Text("Hoy toca descanso")
+                        .font(.system(.body, design: .serif))
+                        .foregroundStyle(Theme.muted)
+                        .multilineTextAlignment(.center)
+                    NavigationLink(destination: RoutinePickerView().environmentObject(store)) {
+                        Text("Entreno libre")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Theme.muted)
+                    .padding(.top, 2)
+                } else {
+                    Text(store.routine ?? "Entreno")
+                        .font(.system(.title3, design: .serif))
+                        .foregroundStyle(Theme.ink)
+                    Text("\(store.exercises.count) ejercicios")
+                        .font(.caption2)
+                        .foregroundStyle(Theme.muted)
+
+                    Button {
+                        WKInterfaceDevice.current().play(.start)
+                        started = true
+                    } label: {
+                        Text("Empezar")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Theme.accent)
+                    .foregroundStyle(.black)
+                    .padding(.top, 6)
+                }
+            }
+            .padding(.horizontal, 4)
+            .containerBackground(Theme.bg, for: .navigation)
+            .navigationDestination(isPresented: $started) {
+                WorkoutView().environmentObject(store)
+            }
+        }
+        .task { await store.loadToday() }
+    }
+}
+
+// ── Selector de rutina para entreno libre (días de descanso) ─────────────────
+struct RoutinePickerView: View {
+    @EnvironmentObject var store: Store
+    @State private var routines: [DeviceRoutine] = []
+    @State private var loading = true
+    @State private var fetchError: String?
+    @State private var selected = false
+
+    var body: some View {
+        Group {
+            if loading {
+                ProgressView().tint(Theme.accent)
+            } else if let e = fetchError {
+                Text(e)
+                    .font(.caption2)
+                    .foregroundStyle(Theme.muted)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            } else {
+                let normal = routines.filter { $0.group != "verano" }
+                let verano = routines.filter { $0.group == "verano" }
+                List {
+                    if !normal.isEmpty {
+                        Section("Normal") {
+                            ForEach(normal) { r in routineButton(r) }
+                        }
+                    }
+                    if !verano.isEmpty {
+                        Section("Verano") {
+                            ForEach(verano) { r in routineButton(r) }
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Rutinas")
+        .containerBackground(Theme.bg, for: .navigation)
+        .navigationDestination(isPresented: $selected) {
+            WorkoutView().environmentObject(store)
+        }
+        .task {
+            do {
+                routines = try await API.routines()
+            } catch {
+                fetchError = "No se pudieron cargar las rutinas."
+            }
+            loading = false
+        }
+    }
+
+    @ViewBuilder
+    private func routineButton(_ r: DeviceRoutine) -> some View {
+        Button {
+            Task {
+                await store.loadRoutine(id: r.id)
+                selected = true
+            }
+        } label: {
+            Text(r.name)
+                .foregroundStyle(Theme.ink)
+        }
+    }
+}
+
+// ── Entreno guiado: serie → feedback → siguiente ────────────────────────────
+struct WorkoutView: View {
+    @EnvironmentObject var store: Store
+    @StateObject private var detector = RepDetector()
+    @State private var index = 0
+    @State private var setsDone = 0
+    @State private var weight: Double = 20
+    @State private var feedback: String?
+    @State private var feedbackGood = false
+    @State private var sending = false
+    @State private var finishedAll = false
+    @State private var totalSets = 0
+
+    var body: some View {
+        Group {
+            if finishedAll || store.exercises.isEmpty {
+                doneView
+            } else {
+                exerciseView
+            }
+        }
+        .containerBackground(Theme.bg, for: .navigation)
+        .onAppear { syncToExercise() }
+        .onDisappear {
+            detector.stop()
+            store.workout.end()
+        }
+    }
+
+    private var exercise: DeviceExercise { store.exercises[index] }
+
+    private var exerciseView: some View {
+        VStack(spacing: 4) {
+            // Cabecera estilo Life Hub
+            Text("\(index + 1)/\(store.exercises.count) · SERIE \(setsDone + 1)/\(exercise.target_sets)")
+                .font(.system(size: 9, weight: .semibold))
+                .tracking(1.5)
+                .foregroundStyle(Theme.accent)
+            Text(exercise.name)
+                .font(.system(.headline, design: .serif))
+                .foregroundStyle(Theme.ink)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.7)
+
+            // Contador grande + correcciones manuales
+            HStack(spacing: 10) {
+                Button { detector.adjust(-1) } label: {
+                    Image(systemName: "minus").font(.caption2)
+                }
+                .buttonStyle(.bordered).tint(Theme.muted)
+                .disabled(!detector.running)
+
+                Text("\(detector.reps)")
+                    .font(.system(size: 46, weight: .bold, design: .rounded))
+                    .foregroundStyle(detector.running ? Theme.ink : Theme.muted)
+                    .contentTransition(.numericText())
+                    .frame(minWidth: 60)
+
+                Button { detector.adjust(+1) } label: {
+                    Image(systemName: "plus").font(.caption2)
+                }
+                .buttonStyle(.bordered).tint(Theme.muted)
+                .disabled(!detector.running)
+            }
+
+            // Peso real de tu app (recomendación), ajustable con la corona
+            Text("\(weight, specifier: "%.2f") kg")
+                .font(.system(.body, design: .rounded).weight(.semibold))
+                .foregroundStyle(Theme.accent)
+                .focusable(true)
+                .digitalCrownRotation($weight, from: 0, through: 300, by: 0.25,
+                                      sensitivity: .low, isContinuous: false)
+                .onChange(of: weight) { _, v in
+                    weight = (v * 4).rounded() / 4
+                }
+
+            if let f = feedback {
+                Text(f)
+                    .font(.caption2)
+                    .foregroundStyle(feedbackGood ? Theme.gain : Theme.muted)
+                    .multilineTextAlignment(.center)
+            }
+
+            if detector.running {
+                Button(action: finishSet) {
+                    Text("Terminar serie").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).tint(Theme.accent).foregroundStyle(.black)
+            } else {
+                Button(action: startSet) {
+                    Text(sending ? "Guardando…" : "Empezar serie").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).tint(Theme.gain).foregroundStyle(.black)
+                .disabled(sending)
+            }
+        }
+        .padding(.horizontal, 2)
+    }
+
+    private var doneView: some View {
+        VStack(spacing: 8) {
+            Text("ENTRENO COMPLETADO")
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(2)
+                .foregroundStyle(Theme.accent)
+            Text(store.routine ?? "Hecho")
+                .font(.system(.title3, design: .serif))
+                .foregroundStyle(Theme.ink)
+            Text("\(totalSets) series registradas en Life Hub")
+                .font(.caption2)
+                .foregroundStyle(Theme.muted)
+                .multilineTextAlignment(.center)
+            Text("Termina el entreno desde la app para ver el resumen.")
+                .font(.system(size: 10))
+                .foregroundStyle(Theme.muted)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    // ── Lógica ──────────────────────────────────────────────────────────────
+    private func syncToExercise() {
+        guard !store.exercises.isEmpty, index < store.exercises.count else { return }
+        weight = store.exercises[index].weight ?? weight
+    }
+
+    private func startSet() {
+        feedback = nil
+        Task {
+            await store.workout.requestAuth()
+            store.workout.start()
+        }
+        detector.start(for: exercise.name)
+    }
+
+    private func finishSet() {
+        detector.stop()
+        store.workout.end()
+        let reps = detector.reps
+        guard reps > 0 else {
+            feedback = "0 reps: serie descartada"
+            feedbackGood = false
+            return
+        }
+        sending = true
+        Task {
+            do {
+                let r = try await API.logSet(exerciseId: exercise.exercise_id,
+                                             weight: weight, reps: reps)
+                totalSets += 1
+                var parts = ["\(reps) reps guardadas"]
+                if r.pr == "peso" {
+                    parts.append("PR de peso")
+                    feedbackGood = true
+                    WKInterfaceDevice.current().play(.notification)
+                } else if r.pr == "1rm" {
+                    parts.append("PR de 1RM")
+                    feedbackGood = true
+                    WKInterfaceDevice.current().play(.notification)
+                } else if let pb = r.prev_best, weight > pb {
+                    parts.append("+\(String(format: "%.1f", weight - pb)) kg vs anterior")
+                    feedbackGood = true
+                    WKInterfaceDevice.current().play(.success)
+                } else {
+                    feedbackGood = false
+                    WKInterfaceDevice.current().play(.success)
+                }
+                setsDone += 1
+                if setsDone >= exercise.target_sets {
+                    // Ejercicio completado → pasa al siguiente con su peso real
+                    if let nw = r.next_weight, let cur = exercise.weight, nw > cur {
+                        parts.append("Próxima vez: \(String(format: "%.1f", nw)) kg")
+                    }
+                    feedback = parts.joined(separator: " · ")
+                    try? await Task.sleep(nanoseconds: 1_800_000_000)
+                    advance()
+                } else {
+                    feedback = parts.joined(separator: " · ")
+                }
+            } catch {
+                feedback = "Sin conexión: no se guardó"
+                feedbackGood = false
+            }
+            sending = false
+        }
+    }
+
+    private func advance() {
+        if index + 1 < store.exercises.count {
+            index += 1
+            setsDone = 0
+            feedback = nil
+            syncToExercise()
+            WKInterfaceDevice.current().play(.directionUp)
+        } else {
+            finishedAll = true
+            WKInterfaceDevice.current().play(.success)
+        }
+    }
+}
