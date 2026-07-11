@@ -425,13 +425,15 @@ struct WorkoutView: View {
             await store.workout.requestAuth()
             store.workout.start()
         }
-        detector.beginSet(for: exercise.name)
+        detector.beginSet(for: exercise.name, id: exercise.exercise_id)
     }
 
     private func finishSet() {
         detector.endSet()
         store.workout.end()
-        let reps = detector.reps
+        // Número REAL: recuento offline sobre toda la serie (no el contador vivo).
+        let reps = detector.manual ? detector.reps : detector.reconciledCount()
+        detector.reps = reps   // reconcilia el contador grande con lo que se guarda
         guard reps > 0 else {
             feedback = "0 reps: serie descartada"
             feedbackGood = false
