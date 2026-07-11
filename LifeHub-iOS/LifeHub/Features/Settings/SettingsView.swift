@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Ajustes: gestión de hábitos, estado de conexiones y sesión.
 struct SettingsView: View {
-    @EnvironmentObject var app: AppState
     @State private var status: AuthStatus?
 
     var body: some View {
@@ -38,29 +37,6 @@ struct SettingsView: View {
             } else {
                 SkeletonList(rows: 2)
             }
-
-            SectionHeader(title: "Servidor")
-            VStack(alignment: .leading, spacing: 4) {
-                Text(app.baseURL)
-                    .font(.footnote.monospaced())
-                    .foregroundStyle(Theme.muted)
-                Text("Se cambia al cerrar sesión.")
-                    .font(.caption2)
-                    .foregroundStyle(Theme.muted)
-            }
-            .card()
-
-            Button(role: .destructive) {
-                app.logout()
-            } label: {
-                Text("Cerrar sesión")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(Theme.surface, in: RoundedRectangle(cornerRadius: 14))
-                    .foregroundStyle(Theme.bad)
-            }
-            .padding(.top, 12)
         }
         .task {
             status = try? await API.shared.authStatus()

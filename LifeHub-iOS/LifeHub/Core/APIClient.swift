@@ -18,14 +18,9 @@ final class API {
 
     static let unauthorizedNotification = Notification.Name("lifehub.unauthorized")
 
-    var baseURL: String {
-        UserDefaults.standard.string(forKey: "lifehub_base_url") ?? "https://dmghub.app"
-    }
+    let baseURL = "https://dmghub.app"
 
-    var token: String {
-        get { Keychain.read("lifehub_token") ?? "" }
-        set { Keychain.write("lifehub_token", value: newValue) }
-    }
+    var token = ""
 
     private let session: URLSession = {
         let cfg = URLSessionConfiguration.default

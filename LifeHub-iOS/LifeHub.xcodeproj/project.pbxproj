@@ -12,6 +12,7 @@
 		149CBF04C2FEEB47D3C36C29 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D9A27D8FB53778E62B80D /* SettingsView.swift */; };
 		17E51823C0BC48F4D3C1F1C1 /* GymView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D78C1E9329F151B1056927 /* GymView.swift */; };
 		2323A22762918D2172063FD0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B3805422377429A64D2C6 /* Keychain.swift */; };
+		23C1EA266A08E57D77A65380 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A55DCCB460DE27EA384813C /* Assets.xcassets */; };
 		2C8F72A93A1E6AF101957AA3 /* LifeHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369926010C3173D2CCEC448C /* LifeHubApp.swift */; };
 		306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */; };
 		34FA71130DEF3A3135E35099 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760FFCF2C87B885444011A11 /* APIClient.swift */; };
@@ -26,16 +27,15 @@
 		CE9B38C317D2103532B3E7D6 /* GymTrainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */; };
 		D21E7CE7780713137FA2318D /* GymProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */; };
 		D50FE09B6AB1D85D8C560256 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B998A2483F0418307D1CBB6 /* CalendarView.swift */; };
-		D9005D446AE34B4C54B512DD /* AuthGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */; };
 		E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA8E90D1B9237D3E72B3B2E /* RootView.swift */; };
 		E5FD9B9F406AD5A30A5D12EC /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EE0D43E2F8F314A2217777 /* MailView.swift */; };
 		E7C314B6BB12752AECAE35B0 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DD10A054DCBB9A91550710 /* Endpoints.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0A55DCCB460DE27EA384813C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
 		0E9239521772533CD9293208 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthGateView.swift; sourceTree = "<group>"; };
 		0FA8E90D1B9237D3E72B3B2E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		14C0362133DE518DA3B0738D /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		155117F5227D016AB83797FA /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
@@ -103,6 +103,7 @@
 		6A60CF75E0CC831E605A609A /* LifeHub */ = {
 			isa = PBXGroup;
 			children = (
+				0A55DCCB460DE27EA384813C /* Assets.xcassets */,
 				3F3850097190054ED7E82A96 /* Info.plist */,
 				BF84C3914F1F10A4E3ED20E7 /* App */,
 				DD94EDDC020CECAD813EECDB /* Core */,
@@ -149,7 +150,6 @@
 		BF84C3914F1F10A4E3ED20E7 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				0F1383B0052EB8B3C3E88BAB /* AuthGateView.swift */,
 				369926010C3173D2CCEC448C /* LifeHubApp.swift */,
 				0FA8E90D1B9237D3E72B3B2E /* RootView.swift */,
 			);
@@ -204,6 +204,7 @@
 			buildConfigurationList = A456AF1BC06CF497140E7E0A /* Build configuration list for PBXNativeTarget "LifeHub" */;
 			buildPhases = (
 				9032BDBE59CDD61B7D3DF1DF /* Sources */,
+				CFA91B7C6A0AA9787DD452E5 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -246,13 +247,23 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		CFA91B7C6A0AA9787DD452E5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23C1EA266A08E57D77A65380 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		9032BDBE59CDD61B7D3DF1DF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				34FA71130DEF3A3135E35099 /* APIClient.swift in Sources */,
-				D9005D446AE34B4C54B512DD /* AuthGateView.swift in Sources */,
 				D50FE09B6AB1D85D8C560256 /* CalendarView.swift in Sources */,
 				BE3BC8EA231ACD9644F1E464 /* Components.swift in Sources */,
 				E7C314B6BB12752AECAE35B0 /* Endpoints.swift in Sources */,
