@@ -5,7 +5,7 @@ struct SettingsView: View {
     var body: some View {
         Screen(title: "Ajustes") {
             Text("Todo lo que se edita vive aquí. La app del día a día queda limpia: solo marcar, apuntar y consultar.")
-                .font(.subheadline)
+                .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.muted)
 
             SettingsLink(icon: "dumbbell.fill", title: "Rutinas de gym",
@@ -32,20 +32,20 @@ struct SettingsLink<Destination: View>: View {
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(Theme.dTitle3)
                     .foregroundStyle(Theme.accent)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .foregroundStyle(Theme.ink)
                     Text(hint)
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.footnote)
+                    .font(Theme.dFootnote)
                     .foregroundStyle(Theme.muted)
             }
             .card()
@@ -70,7 +70,7 @@ struct ConnectionsView: View {
     var body: some View {
         Screen(title: "Conexiones", refresh: { status = try? await API.shared.authStatus() }) {
             Text("Estado de tus cuentas. Cuando algo caduque, se renueva desde aquí.")
-                .font(.subheadline)
+                .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.muted)
 
             if let status {
@@ -83,19 +83,18 @@ struct ConnectionsView: View {
                     Text(status.google.connected
                          ? "Correo y agenda funcionando."
                          : "No conecta: renueva el token para volver a leer correo y agenda.")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                     if !status.google.connected {
                         HButton(haptic: Haptics.medium) {
                             Task { await renew() }
                         } label: {
                             Text(opening ? "Abriendo Google…" : "Renovar token")
-                                .font(.subheadline.weight(.bold))
+                                .font(Theme.dSubheadline.weight(.bold))
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))
-                                .foregroundStyle(.black)
+                                .padding(.vertical, 4)
                         }
+                        .actionGlass()
                         .disabled(opening)
                     }
                 }
@@ -110,7 +109,7 @@ struct ConnectionsView: View {
                     Text(status.epitech.connected
                          ? "Estudios y el coach funcionan."
                          : "Sesión caída: hay que rehacer el login (Microsoft + 2FA). Dímelo y lo renovamos.")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
                 .card()
@@ -141,11 +140,11 @@ struct ConnectionRow: View {
                 .fill(connected ? Theme.good : Theme.bad)
                 .frame(width: 9, height: 9)
             Text(name)
-                .font(.subheadline.weight(.semibold))
+                .font(Theme.dSubheadline.weight(.semibold))
                 .foregroundStyle(Theme.ink)
             Spacer()
             Text(connected ? (detail ?? "Conectado") : "Sin conexión")
-                .font(.caption)
+                .font(Theme.dCaption)
                 .foregroundStyle(Theme.muted)
         }
     }
@@ -164,25 +163,24 @@ struct HabitManagerView: View {
             if let error {
                 ErrorCard(detail: error) { await load() }
             } else if let habits {
-                Button {
+                HButton(haptic: Haptics.medium) {
                     creating = true
                 } label: {
                     Label("Nuevo hábito", systemImage: "plus")
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(Theme.accent, in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.black)
+                        .padding(.vertical, 6)
                 }
+                .actionGlass()
 
                 ForEach(habits) { habit in
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(habit.name)
-                                .font(.headline)
+                                .font(Theme.dHeadline)
                                 .foregroundStyle(habit.active ? Theme.ink : Theme.muted)
                             Text(habit.category.label)
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                         Spacer()
@@ -279,7 +277,7 @@ struct HabitFormSheet: View {
                                 if weekDays.contains(d) { weekDays.remove(d) } else { weekDays.insert(d) }
                             }
                             .buttonStyle(.borderless)
-                            .font(.caption.weight(.bold))
+                            .font(Theme.dCaption.weight(.bold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(

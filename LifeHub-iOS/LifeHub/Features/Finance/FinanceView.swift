@@ -15,13 +15,13 @@ struct FinanceView: View {
             } content: { (summary: FinanceSummary) in
                 if summary.status == "error" {
                     Text(summary.detail ?? "Error")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.bad)
                         .card()
                 } else {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Patrimonio total")
-                            .font(.caption.weight(.semibold))
+                            .font(Theme.dCaption.weight(.semibold))
                             .textCase(.uppercase)
                             .tracking(2)
                             .foregroundStyle(Theme.muted)
@@ -30,14 +30,14 @@ struct FinanceView: View {
                             .foregroundStyle(Theme.ink)
                         if let pct = summary.day_change_pct {
                             Text(String(format: "%+.2f%% hoy", pct))
-                                .font(.subheadline.weight(.semibold))
+                                .font(Theme.dSubheadline.weight(.semibold))
                                 .foregroundStyle(pct >= 0 ? Theme.good : Theme.bad)
                         }
                         HStack(spacing: 16) {
                             Text("Alpaca \(euro(summary.alpaca_eur))")
                             Text("Bitvavo \(euro(summary.bitvavo_eur))")
                         }
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                     }
                     .card()
@@ -92,7 +92,7 @@ struct PortfolioSection: View {
         LoadView(load: load) { (p: PortfolioOverview) in
             if p.status == "error" {
                 Text(p.detail ?? "Error")
-                    .font(.subheadline)
+                    .font(Theme.dSubheadline)
                     .foregroundStyle(Theme.bad)
                     .card()
             } else {
@@ -113,19 +113,19 @@ struct PortfolioSection: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(pos.symbol)
-                                .font(.headline)
+                                .font(Theme.dHeadline)
                                 .foregroundStyle(Theme.ink)
                             Text("\(pos.qty.clean) × \(pos.price.clean)")
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
                             Text(money(pos.value, p.currency))
-                                .font(.subheadline.weight(.semibold))
+                                .font(Theme.dSubheadline.weight(.semibold))
                                 .foregroundStyle(Theme.ink)
                             Text(String(format: "%+.2f%% hoy", pos.day_pct))
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(pos.day_pct >= 0 ? Theme.good : Theme.bad)
                         }
                     }

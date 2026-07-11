@@ -69,12 +69,11 @@ struct MacrosView: View {
                     showAdd = true
                 } label: {
                     Label("Añadir comida", systemImage: "plus")
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(Theme.accent, in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.black)
+                        .padding(.vertical, 6)
                 }
+                .actionGlass()
 
                 if !day.items.isEmpty {
                     SectionHeader(title: "Hoy")
@@ -84,7 +83,7 @@ struct MacrosView: View {
                                 .foregroundStyle(Theme.ink)
                             Spacer()
                             Text("\(Int(item.kcal)) kcal · \(Int(item.protein)) g")
-                                .font(.footnote)
+                                .font(Theme.dFootnote)
                                 .foregroundStyle(Theme.muted)
                         }
                         .card(padding: 13)
@@ -140,17 +139,17 @@ struct MacroRing: View {
                     .stroke(Theme.accent, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 Text("\(Int(progress * 100))%")
-                    .font(.caption.weight(.bold))
+                    .font(Theme.dCaption.weight(.bold))
                     .foregroundStyle(Theme.ink)
             }
             .frame(width: 58, height: 58)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(label)
-                    .font(.headline)
+                    .font(Theme.dHeadline)
                     .foregroundStyle(Theme.ink)
                 Text("\(Int(value)) de \(Int(target)) \(unit)")
-                    .font(.subheadline)
+                    .font(Theme.dSubheadline)
                     .foregroundStyle(Theme.muted)
             }
             Spacer()
@@ -217,7 +216,7 @@ struct DietView: View {
                 }
             } label: {
                 Label("Añadir semana a la compra", systemImage: "cart.badge.plus")
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.dSubheadline.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(Theme.surface2, in: RoundedRectangle(cornerRadius: 14))
@@ -226,7 +225,7 @@ struct DietView: View {
 
             if let toast {
                 Text(toast)
-                    .font(.footnote)
+                    .font(Theme.dFootnote)
                     .foregroundStyle(Theme.good)
             }
 
@@ -238,7 +237,7 @@ struct DietView: View {
                             .foregroundStyle(day.is_today ? Theme.accent : Theme.ink)
                         if day.is_today {
                             Text("HOY")
-                                .font(.caption2.weight(.bold))
+                                .font(Theme.dCaption2.weight(.bold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
                                 .background(Theme.accent.opacity(0.15), in: Capsule())
@@ -270,11 +269,11 @@ struct MealRow: View {
     var body: some View {
         HStack(alignment: .top) {
             Text(label)
-                .font(.caption.weight(.semibold))
+                .font(Theme.dCaption.weight(.semibold))
                 .foregroundStyle(Theme.muted)
                 .frame(width: 76, alignment: .leading)
             Text(dish)
-                .font(.subheadline)
+                .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.ink)
             Spacer()
             if canLog {
@@ -315,7 +314,7 @@ struct ShoppingView: View {
                         Task { await add() }
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title)
+                            .font(Theme.dTitle)
                             .foregroundStyle(Theme.accent)
                     }
                     .disabled(newItem.isEmpty)
@@ -335,7 +334,7 @@ struct ShoppingView: View {
                             }
                         } label: {
                             Image(systemName: item.done ? "checkmark.circle.fill" : "circle")
-                                .font(.title2)
+                                .font(Theme.dTitle2)
                                 .foregroundStyle(item.done ? Theme.good : Theme.muted)
                         }
                         Text(item.text)
@@ -363,7 +362,7 @@ struct ShoppingView: View {
                             await load()
                         }
                     }
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.dSubheadline.weight(.semibold))
                     .foregroundStyle(Theme.muted)
                 }
             } else {

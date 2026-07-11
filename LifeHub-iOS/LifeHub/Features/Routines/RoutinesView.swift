@@ -89,23 +89,23 @@ struct HabitRow: View {
                 Task { await toggle() }
             } label: {
                 Image(systemName: habit.done_today ? "checkmark.circle.fill" : "circle")
-                    .font(.title)
+                    .font(Theme.dTitle)
                     .foregroundStyle(habit.done_today ? Theme.good : Theme.muted)
             }
             .disabled(busy)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(habit.name)
-                    .font(.headline)
+                    .font(Theme.dHeadline)
                     .foregroundStyle(Theme.ink)
                 HStack(spacing: 8) {
                     if let next = habit.next_time, habit.due_today {
                         Text(next)
-                            .font(.caption.weight(.semibold))
+                            .font(Theme.dCaption.weight(.semibold))
                             .foregroundStyle(Theme.accent)
                     }
                     Text(habit.progress_label)
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
             }
@@ -114,7 +114,7 @@ struct HabitRow: View {
 
             if habit.streak > 0 {
                 Label("\(habit.streak)", systemImage: "flame.fill")
-                    .font(.caption.weight(.bold))
+                    .font(Theme.dCaption.weight(.bold))
                     .foregroundStyle(Theme.accent)
             }
         }
@@ -170,7 +170,7 @@ struct HistoryList: View {
             ForEach(rows) { row in
                 VStack(alignment: .leading, spacing: 10) {
                     Text(row.habit.name)
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .foregroundStyle(Theme.ink)
                     Heatmap(doneDays: row.doneDays)
                 }

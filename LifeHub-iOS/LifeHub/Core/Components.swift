@@ -64,14 +64,14 @@ struct ErrorCard: View {
                 .font(.display(20))
                 .foregroundStyle(Theme.ink)
             Text(detail)
-                .font(.footnote)
+                .font(Theme.dFootnote)
                 .foregroundStyle(Theme.muted)
                 .lineLimit(4)
             Button {
                 Task { await retry() }
             } label: {
                 Text("Reintentar")
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.dSubheadline.weight(.semibold))
                     .foregroundStyle(Theme.accent)
             }
         }
@@ -83,7 +83,7 @@ struct SectionHeader: View {
     let title: String
     var body: some View {
         Text(title)
-            .font(.caption.weight(.semibold))
+            .font(Theme.dCaption.weight(.semibold))
             .textCase(.uppercase)
             .tracking(2)
             .foregroundStyle(Theme.muted)
@@ -105,7 +105,7 @@ struct CoachCard: View {
                         .foregroundStyle(Theme.accent)
                         .padding(.top, 2)
                     Text(text)
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.ink)
                 }
                 .card()
@@ -121,7 +121,7 @@ struct EmptyState: View {
     let text: String
     var body: some View {
         Text(text)
-            .font(.subheadline)
+            .font(Theme.dSubheadline)
             .foregroundStyle(Theme.muted)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 32)
@@ -142,7 +142,7 @@ struct Screen<Content: View>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(title)
-                    .font(.display(34, weight: .bold))
+                    .font(.display(34, weight: .regular))
                     .foregroundStyle(Theme.ink)
                     .padding(.top, 8)
                 content
@@ -186,9 +186,10 @@ enum Fmt {
         return f.date(from: s)
     }
 
+    /// Fecha en claro y en español: "4 de julio".
     static func short(_ s: String?) -> String {
         guard let d = date(s) else { return s ?? "" }
-        return d.formatted(.dateTime.day().month(.abbreviated))
+        return d.formatted(.dateTime.day().month(.wide).locale(Locale(identifier: "es_ES")))
     }
 
     static func time(_ s: String?) -> String {

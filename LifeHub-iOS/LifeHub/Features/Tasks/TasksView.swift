@@ -28,7 +28,7 @@ struct TasksView: View {
                         Task { await addTask() }
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title)
+                            .font(Theme.dTitle)
                             .foregroundStyle(Theme.accent)
                     }
                     .disabled(newTask.isEmpty)
@@ -60,7 +60,7 @@ struct TasksView: View {
                         Task { await addNote() }
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title)
+                            .font(Theme.dTitle)
                             .foregroundStyle(Theme.accent)
                     }
                     .disabled(newNote.isEmpty)
@@ -68,7 +68,7 @@ struct TasksView: View {
                 ForEach(notes) { note in
                     HStack(alignment: .top) {
                         Text(note.text)
-                            .font(.subheadline)
+                            .font(Theme.dSubheadline)
                             .foregroundStyle(Theme.ink)
                         Spacer()
                         Button {
@@ -78,7 +78,7 @@ struct TasksView: View {
                             }
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                     }
@@ -132,7 +132,7 @@ struct TaskRow: View {
                 }
             } label: {
                 Image(systemName: task.done ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
+                    .font(Theme.dTitle2)
                     .foregroundStyle(task.done ? Theme.good : Theme.muted)
             }
             VStack(alignment: .leading, spacing: 2) {
@@ -141,7 +141,7 @@ struct TaskRow: View {
                     .foregroundStyle(task.done ? Theme.muted : Theme.ink)
                 if let due = task.due {
                     Text("Para el \(Fmt.short(due))")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(overdue(due) && !task.done ? Theme.bad : Theme.muted)
                 }
             }

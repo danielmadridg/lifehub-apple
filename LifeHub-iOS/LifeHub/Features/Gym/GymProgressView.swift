@@ -30,11 +30,11 @@ struct GymProgressView: View {
                 } label: {
                     HStack {
                         Text(selected?.name ?? "Elige ejercicio")
-                            .font(.headline)
+                            .font(Theme.dHeadline)
                             .foregroundStyle(Theme.ink)
                         Spacer()
                         Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption)
+                            .font(Theme.dCaption)
                             .foregroundStyle(Theme.muted)
                     }
                     .card()
@@ -42,17 +42,17 @@ struct GymProgressView: View {
 
                 if let p = progress {
                     HStack(spacing: 10) {
-                        StatTile(icon: "trophy.fill", value: "\(p.pr_weight.clean) kg", label: "PR peso")
-                        StatTile(icon: "bolt.fill", value: "\(p.pr_1rm.clean) kg", label: "PR 1RM est.")
+                        StatTile(icon: "trophy.fill", value: "\(p.pr_weight.clean) kg", label: "récord de peso")
+                        StatTile(icon: "bolt.fill", value: "\(p.pr_1rm.clean) kg", label: "récord de 1RM estimado")
                     }
 
                     if let w = p.recommendation.weight {
                         VStack(alignment: .leading, spacing: 4) {
                             Label("Próxima sesión: \(w.clean) kg × \(p.recommendation.reps)", systemImage: "target")
-                                .font(.subheadline.weight(.semibold))
+                                .font(Theme.dSubheadline.weight(.semibold))
                                 .foregroundStyle(Theme.accent)
                             Text(p.recommendation.note)
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                         .card()
@@ -77,11 +77,11 @@ struct GymProgressView: View {
                     ForEach(p.sessions.reversed(), id: \.date) { s in
                         HStack {
                             Text(Fmt.short(s.date))
-                                .font(.subheadline)
+                                .font(Theme.dSubheadline)
                                 .foregroundStyle(Theme.ink)
                             Spacer()
                             Text("\(s.top_weight.clean)×\(s.top_reps) · 1RM \(s.est_1rm.clean) · \(Int(s.volume)) kg")
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                         .card(padding: 12)

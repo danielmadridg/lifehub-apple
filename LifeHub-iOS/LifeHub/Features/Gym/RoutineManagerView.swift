@@ -34,19 +34,18 @@ struct RoutineManagerView: View {
                 Text(mode == "summer"
                      ? "Verano: Front Day (martes) y Back Day (viernes), 1 serie de todo."
                      : "Tu split normal de 5 días.")
-                    .font(.caption)
+                    .font(Theme.dCaption)
                     .foregroundStyle(Theme.muted)
 
                 HButton(haptic: Haptics.medium) {
                     creating = true
                 } label: {
                     Label("Nueva rutina", systemImage: "plus")
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(Theme.accent, in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.black)
+                        .padding(.vertical, 6)
                 }
+                .actionGlass()
                 .padding(.top, 4)
 
                 ForEach(["normal", "verano"], id: \.self) { group in
@@ -109,7 +108,7 @@ struct RoutineManagerCard: View {
                 Spacer()
                 HButton { onEdit() } label: {
                     Image(systemName: "pencil")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.muted)
                         .frame(width: 32, height: 32)
                 }
@@ -117,14 +116,14 @@ struct RoutineManagerCard: View {
                     confirmDelete = true
                 } label: {
                     Image(systemName: "trash")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.muted)
                         .frame(width: 32, height: 32)
                 }
             }
             ForEach(routine.exercises, id: \.exercise_id) { e in
                 Text("\(e.name) — \(e.sets)×\(e.reps_min)-\(e.reps_max)")
-                    .font(.caption)
+                    .font(Theme.dCaption)
                     .foregroundStyle(Theme.muted)
             }
         }
@@ -172,7 +171,7 @@ struct RoutineFormSheet: View {
                         .foregroundStyle(Theme.ink)
 
                     Text("Ejercicios · series × repes mín–máx")
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.dCaption.weight(.semibold))
                         .foregroundStyle(Theme.muted)
 
                     ForEach($items) { $item in
@@ -180,10 +179,10 @@ struct RoutineFormSheet: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(item.name)
-                                        .font(.subheadline.weight(.semibold))
+                                        .font(Theme.dSubheadline.weight(.semibold))
                                         .foregroundStyle(Theme.ink)
                                     Text(item.muscle.capitalized)
-                                        .font(.caption2)
+                                        .font(Theme.dCaption2)
                                         .textCase(.uppercase)
                                         .foregroundStyle(Theme.muted)
                                 }
@@ -192,19 +191,19 @@ struct RoutineFormSheet: View {
                                     items.removeAll { $0.exercise_id == item.exercise_id }
                                 } label: {
                                     Image(systemName: "xmark")
-                                        .font(.caption)
+                                        .font(Theme.dCaption)
                                         .foregroundStyle(Theme.muted)
                                 }
                             }
                             HStack(spacing: 12) {
                                 Stepper("\(item.sets) series", value: $item.sets, in: 1...12)
-                                    .font(.caption)
+                                    .font(Theme.dCaption)
                             }
                             HStack(spacing: 12) {
                                 Stepper("\(item.reps_min) mín", value: $item.reps_min, in: 1...50)
-                                    .font(.caption)
+                                    .font(Theme.dCaption)
                                 Stepper("\(item.reps_max) máx", value: $item.reps_max, in: 1...50)
-                                    .font(.caption)
+                                    .font(Theme.dCaption)
                             }
                         }
                         .card(padding: 13)
@@ -214,23 +213,21 @@ struct RoutineFormSheet: View {
                         picking = true
                     } label: {
                         Label("Añadir ejercicio", systemImage: "plus")
-                            .font(.subheadline.weight(.semibold))
+                            .font(Theme.dSubheadline.weight(.semibold))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Theme.surface2, in: RoundedRectangle(cornerRadius: 14))
-                            .foregroundStyle(Theme.accent)
+                            .padding(.vertical, 4)
                     }
+                    .secondaryGlass(Theme.accent)
 
                     HButton(haptic: Haptics.success) {
                         Task { await save() }
                     } label: {
                         Text(saving ? "Guardando…" : "Guardar")
-                            .font(.headline)
+                            .font(Theme.dHeadline)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(valid ? Theme.accent : Theme.surface2, in: RoundedRectangle(cornerRadius: 14))
-                            .foregroundStyle(valid ? .black : Theme.muted)
+                            .padding(.vertical, 6)
                     }
+                    .actionGlass()
                     .disabled(!valid || saving)
                 }
                 .padding(20)
@@ -366,7 +363,7 @@ struct ExercisePickerSheet: View {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(groups, id: \.equipment) { group in
                             Text(Self.equipmentLabels[group.equipment] ?? group.equipment)
-                                .font(.caption.weight(.semibold))
+                                .font(Theme.dCaption.weight(.semibold))
                                 .textCase(.uppercase)
                                 .tracking(1.5)
                                 .foregroundStyle(Theme.accent)
@@ -379,10 +376,10 @@ struct ExercisePickerSheet: View {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(e.name)
-                                                .font(.subheadline.weight(.medium))
+                                                .font(Theme.dSubheadline.weight(.medium))
                                                 .foregroundStyle(Theme.ink)
                                             Text(e.muscle.capitalized)
-                                                .font(.caption2)
+                                                .font(Theme.dCaption2)
                                                 .textCase(.uppercase)
                                                 .foregroundStyle(Theme.muted)
                                         }
@@ -395,7 +392,7 @@ struct ExercisePickerSheet: View {
 
                         if filtered.isEmpty {
                             Text("Nada encontrado. Créalo abajo.")
-                                .font(.subheadline)
+                                .font(Theme.dSubheadline)
                                 .foregroundStyle(Theme.muted)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 20)
@@ -427,7 +424,7 @@ struct ExercisePickerSheet: View {
             muscle = value
         } label: {
             Text(label)
-                .font(.caption.weight(.medium))
+                .font(Theme.dCaption.weight(.medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .background(active ? Theme.accent.opacity(0.15) : Theme.surface2, in: Capsule())
@@ -445,7 +442,7 @@ struct ExercisePickerSheet: View {
                       ? "Crear ejercicio nuevo"
                       : "Crear \"\(query.trimmingCharacters(in: .whitespaces))\"",
                       systemImage: "plus")
-                    .font(.subheadline.weight(.medium))
+                    .font(Theme.dSubheadline.weight(.medium))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line, style: StrokeStyle(lineWidth: 1, dash: [4])))
@@ -454,7 +451,7 @@ struct ExercisePickerSheet: View {
         } else {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Nuevo: \(query.trimmingCharacters(in: .whitespaces).isEmpty ? "(escribe el nombre arriba)" : query)")
-                    .font(.caption)
+                    .font(Theme.dCaption)
                     .foregroundStyle(Theme.muted)
                 HStack(spacing: 10) {
                     Picker("Músculo", selection: $newMuscle) {
@@ -471,7 +468,7 @@ struct ExercisePickerSheet: View {
                     Task { await create() }
                 } label: {
                     Text("Crear y elegir")
-                        .font(.subheadline.weight(.bold))
+                        .font(Theme.dSubheadline.weight(.bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 11)
                         .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))

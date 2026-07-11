@@ -13,7 +13,7 @@ struct HomeView: View {
     var body: some View {
         Screen(title: greeting, refresh: { await load() }) {
             Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide)))
-                .font(.subheadline)
+                .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.muted)
                 .padding(.top, -8)
 
@@ -39,7 +39,7 @@ struct HomeView: View {
                 StatTile(
                     icon: "fish.fill",
                     value: food.map { "\(Int($0.total_protein)) g" } ?? "—",
-                    label: "de \(Int(Me.proteinTarget(weight: weight))) g prote"
+                    label: "de \(Int(Me.proteinTarget(weight: weight))) g de proteína"
                 )
             }
             HStack(spacing: 10) {
@@ -97,7 +97,7 @@ struct StatTile: View {
                 .font(.display(26, weight: .bold))
                 .foregroundStyle(Theme.ink)
             Text(label)
-                .font(.caption)
+                .font(Theme.dCaption)
                 .foregroundStyle(Theme.muted)
         }
         .card(padding: 14)

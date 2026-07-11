@@ -9,7 +9,7 @@ struct CalendarView: View {
             } content: { (overview: CalendarOverview) in
                 if overview.status == "error" {
                     Text(overview.detail ?? "Error")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.bad)
                         .card()
                 } else if (overview.events ?? []).isEmpty {
@@ -19,20 +19,20 @@ struct CalendarView: View {
                         HStack(spacing: 14) {
                             VStack(spacing: 2) {
                                 Text(Fmt.short(event.start))
-                                    .font(.caption.weight(.bold))
+                                    .font(Theme.dCaption.weight(.bold))
                                     .foregroundStyle(Theme.accent)
                                 Text(Fmt.time(event.start))
-                                    .font(.caption2)
+                                    .font(Theme.dCaption2)
                                     .foregroundStyle(Theme.muted)
                             }
                             .frame(width: 64)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(event.title)
-                                    .font(.headline)
+                                    .font(Theme.dHeadline)
                                     .foregroundStyle(Theme.ink)
                                 if let loc = event.location, !loc.isEmpty {
                                     Label(loc, systemImage: "mappin")
-                                        .font(.caption)
+                                        .font(Theme.dCaption)
                                         .foregroundStyle(Theme.muted)
                                         .lineLimit(1)
                                 }

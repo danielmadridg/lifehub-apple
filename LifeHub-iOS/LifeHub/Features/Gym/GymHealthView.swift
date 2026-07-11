@@ -31,7 +31,7 @@ struct GymHealthView: View {
                         Task { await addWeight() }
                     } label: {
                         Text("Apuntar")
-                            .font(.subheadline.weight(.bold))
+                            .font(Theme.dSubheadline.weight(.bold))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
                             .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))
@@ -54,7 +54,7 @@ struct GymHealthView: View {
                 }
                 if let last = bodyweight.first {
                     Text("Último: \(last.weight.clean) kg · \(Fmt.short(last.at))")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
 
@@ -70,7 +70,7 @@ struct GymHealthView: View {
                 SectionHeader(title: "Fotos de progreso")
                 PhotosPicker(selection: $photoPick, matching: .images) {
                     Label("Subir foto", systemImage: "camera.fill")
-                        .font(.subheadline.weight(.semibold))
+                        .font(Theme.dSubheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .background(Theme.surface2, in: RoundedRectangle(cornerRadius: 14))
@@ -100,7 +100,7 @@ struct GymHealthView: View {
                                     .frame(width: 110, height: 150)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     Text(Fmt.short(photo.at))
-                                        .font(.caption2)
+                                        .font(Theme.dCaption2)
                                         .foregroundStyle(Theme.muted)
                                 }
                                 .contextMenu {
@@ -124,7 +124,7 @@ struct GymHealthView: View {
                     ForEach(healthDays.prefix(7), id: \.day) { d in
                         HStack {
                             Text(Fmt.short(d.day))
-                                .font(.subheadline)
+                                .font(Theme.dSubheadline)
                                 .foregroundStyle(Theme.ink)
                             Spacer()
                             Text([
@@ -132,7 +132,7 @@ struct GymHealthView: View {
                                 d.sleep_hours.map { "\($0.clean) h sueño" },
                                 d.resting_hr.map { "\($0) ppm" },
                             ].compactMap { $0 }.joined(separator: " · "))
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                         }
                         .card(padding: 12)
@@ -175,15 +175,15 @@ struct MeasureRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(site.capitalized)
-                    .font(.subheadline.weight(.semibold))
+                    .font(Theme.dSubheadline.weight(.semibold))
                     .foregroundStyle(Theme.ink)
                 if let last = entries.first {
                     Text("\(last.value.clean) cm · \(Fmt.short(last.at))")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 } else {
                     Text("Sin datos")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
             }

@@ -17,7 +17,7 @@ struct GymTrainView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     if let prBanner {
                         Label(prBanner, systemImage: "trophy.fill")
-                            .font(.headline)
+                            .font(Theme.dHeadline)
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
@@ -43,21 +43,23 @@ struct GymTrainView: View {
                     }
 
                     Button {
+                        Haptics.medium()
                         Task { await finish() }
                     } label: {
                         Text("Terminar entreno")
-                            .font(.headline)
+                            .font(Theme.dHeadline)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Theme.accent, in: RoundedRectangle(cornerRadius: 14))
-                            .foregroundStyle(.black)
+                            .padding(.vertical, 6)
                     }
+                    .actionGlass()
 
                     Button("Descartar entreno", role: .destructive) {
+                        Haptics.rigid()
                         confirmDiscard = true
                     }
-                    .font(.subheadline)
+                    .font(Theme.dSubheadline)
                     .frame(maxWidth: .infinity)
+                    .secondaryGlass(Theme.bad)
                 }
                 .padding(20)
             }
@@ -111,10 +113,10 @@ struct RestTimer: View {
             HStack(spacing: 10) {
                 if remaining > 0 {
                     Text(String(format: "%d:%02d", remaining / 60, remaining % 60))
-                        .font(.headline.monospacedDigit())
+                        .font(Theme.dHeadline.monospacedDigit())
                         .foregroundStyle(Theme.accent)
                     Button("+30s") { end = end.addingTimeInterval(30) }
-                        .font(.caption.weight(.bold))
+                        .font(Theme.dCaption.weight(.bold))
                     Button {
                         onDone()
                     } label: {
@@ -123,7 +125,7 @@ struct RestTimer: View {
                     }
                 } else {
                     Text("¡A la barra!")
-                        .font(.headline)
+                        .font(Theme.dHeadline)
                         .foregroundStyle(Theme.good)
                         .onAppear {
                             Haptics.warning()
@@ -155,12 +157,12 @@ struct ExerciseCard: View {
                         .font(.display(19))
                         .foregroundStyle(Theme.ink)
                     Text("\(item.exercise.muscle.capitalized) · \(item.target_sets)×\(item.reps_min)-\(item.reps_max)")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                 }
                 Spacer()
                 Text("\(item.sets.count)/\(item.target_sets)")
-                    .font(.caption.weight(.bold))
+                    .font(Theme.dCaption.weight(.bold))
                     .foregroundStyle(item.sets.count >= item.target_sets ? Theme.good : Theme.muted)
             }
 
@@ -168,10 +170,10 @@ struct ExerciseCard: View {
             if let w = item.recommendation.weight {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("\(w.clean) kg × \(item.recommendation.reps)", systemImage: "target")
-                        .font(.subheadline.weight(.semibold))
+                        .font(Theme.dSubheadline.weight(.semibold))
                         .foregroundStyle(Theme.accent)
                     Text(item.recommendation.note)
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                     if item.exercise.equipment == "barra" {
                         PlatesHint(total: w)
@@ -182,7 +184,7 @@ struct ExerciseCard: View {
             // Última sesión
             if !item.last.isEmpty {
                 Text("Última: " + item.last.map { "\($0.weight.clean)×\($0.reps)" }.joined(separator: "  "))
-                    .font(.caption)
+                    .font(Theme.dCaption)
                     .foregroundStyle(Theme.muted)
             }
 
@@ -190,15 +192,15 @@ struct ExerciseCard: View {
             ForEach(item.sets) { set in
                 HStack {
                     Text("Serie \(set.set_number)")
-                        .font(.caption)
+                        .font(Theme.dCaption)
                         .foregroundStyle(Theme.muted)
                     Spacer()
                     Text("\(set.weight.clean) kg × \(set.reps)")
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .font(Theme.dSubheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(Theme.ink)
                     if let pr = set.pr {
                         Text("PR \(pr)")
-                            .font(.caption2.weight(.bold))
+                            .font(Theme.dCaption2.weight(.bold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Theme.accent.opacity(0.2), in: Capsule())
@@ -211,7 +213,7 @@ struct ExerciseCard: View {
                         }
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.caption2)
+                            .font(Theme.dCaption2)
                             .foregroundStyle(Theme.muted)
                     }
                 }
@@ -222,13 +224,13 @@ struct ExerciseCard: View {
             HStack(spacing: 12) {
                 Stepper(value: $weight, step: stepFor(item.exercise.equipment)) {
                     Text("\(weight.clean) kg")
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .font(Theme.dSubheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(Theme.ink)
                 }
                 .frame(maxWidth: .infinity)
                 Stepper(value: $reps, in: 0...50) {
                     Text("\(reps) reps")
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .font(Theme.dSubheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(Theme.ink)
                 }
                 .frame(maxWidth: .infinity)
@@ -239,12 +241,11 @@ struct ExerciseCard: View {
                 Task { await addSet() }
             } label: {
                 Text("Apuntar serie")
-                    .font(.subheadline.weight(.bold))
+                    .font(Theme.dSubheadline.weight(.bold))
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(Theme.surface2, in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(Theme.accent)
+                    .padding(.vertical, 4)
             }
+            .actionGlass()
             .disabled(saving || reps == 0)
         }
         .card()
@@ -288,7 +289,7 @@ struct PlatesHint: View {
         if !result.plates.isEmpty {
             Text("Discos/lado: " + result.plates.map(\.clean).joined(separator: " + ")
                  + (result.leftover > 0 ? " (faltan \(result.leftover.clean))" : ""))
-                .font(.caption2)
+                .font(Theme.dCaption2)
                 .foregroundStyle(Theme.muted)
         }
     }
@@ -322,7 +323,7 @@ struct WorkoutSummarySheet: View {
                             SectionHeader(title: "Récords")
                             ForEach(s.prs, id: \.exercise) { pr in
                                 Label("\(pr.exercise): \(pr.value.clean) (\(pr.kind))", systemImage: "trophy.fill")
-                                    .font(.subheadline.weight(.semibold))
+                                    .font(Theme.dSubheadline.weight(.semibold))
                                     .foregroundStyle(Theme.accent)
                                     .card(padding: 12)
                             }
@@ -332,7 +333,7 @@ struct WorkoutSummarySheet: View {
                             Text(vs.volume_delta >= 0
                                  ? "▲ \(Int(vs.volume_delta)) kg más que el \(Fmt.short(vs.date))"
                                  : "▼ \(Int(-vs.volume_delta)) kg menos que el \(Fmt.short(vs.date))")
-                                .font(.subheadline)
+                                .font(Theme.dSubheadline)
                                 .foregroundStyle(vs.volume_delta >= 0 ? Theme.good : Theme.bad)
                         }
                     }

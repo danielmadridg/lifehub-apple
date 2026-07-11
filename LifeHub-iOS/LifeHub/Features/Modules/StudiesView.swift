@@ -16,13 +16,13 @@ struct StudiesView: View {
             } else if let o = overview {
                 if o.status == "error" {
                     Text(o.detail ?? "Error")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.bad)
                         .card()
                 } else {
                     if let summary = o.summary, !summary.isEmpty {
                         Text(summary)
-                            .font(.subheadline)
+                            .font(Theme.dSubheadline)
                             .foregroundStyle(Theme.ink)
                             .card()
                     }
@@ -32,7 +32,7 @@ struct StudiesView: View {
                         ForEach(projects, id: \.title) { p in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(p.title)
-                                    .font(.headline)
+                                    .font(Theme.dHeadline)
                                     .foregroundStyle(Theme.ink)
                                 HStack {
                                     if let deadline = p.deadline {
@@ -42,7 +42,7 @@ struct StudiesView: View {
                                         Label(progress, systemImage: "chart.bar.fill")
                                     }
                                 }
-                                .font(.caption)
+                                .font(Theme.dCaption)
                                 .foregroundStyle(Theme.muted)
                             }
                             .card()
@@ -54,11 +54,11 @@ struct StudiesView: View {
                         ForEach(activities, id: \.title) { a in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(a.title)
-                                    .font(.headline)
+                                    .font(Theme.dHeadline)
                                     .foregroundStyle(Theme.ink)
                                 if let start = a.start {
                                     Label(start, systemImage: "calendar")
-                                        .font(.caption)
+                                        .font(Theme.dCaption)
                                         .foregroundStyle(Theme.muted)
                                 }
                             }
@@ -71,11 +71,11 @@ struct StudiesView: View {
                         ForEach(notes, id: \.title) { n in
                             HStack {
                                 Text(n.title)
-                                    .font(.subheadline)
+                                    .font(Theme.dSubheadline)
                                     .foregroundStyle(Theme.ink)
                                 Spacer()
                                 Text(n.note ?? "—")
-                                    .font(.subheadline.weight(.bold))
+                                    .font(Theme.dSubheadline.weight(.bold))
                                     .foregroundStyle(Theme.accent)
                             }
                             .card(padding: 13)
@@ -90,7 +90,7 @@ struct StudiesView: View {
                         Task { await load(refresh: true) }
                     } label: {
                         Label(refreshing ? "Actualizando…" : "Actualizar datos", systemImage: "arrow.clockwise")
-                            .font(.subheadline.weight(.semibold))
+                            .font(Theme.dSubheadline.weight(.semibold))
                             .foregroundStyle(Theme.muted)
                     }
                     .disabled(refreshing)

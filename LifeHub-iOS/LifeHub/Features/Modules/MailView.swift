@@ -11,24 +11,36 @@ struct MailView: View {
             } content: { (overview: MailOverview) in
                 if overview.status == "error" {
                     Text(overview.detail ?? "Error")
-                        .font(.subheadline)
+                        .font(Theme.dSubheadline)
                         .foregroundStyle(Theme.bad)
                         .card()
                 } else if (overview.messages ?? []).isEmpty {
                     EmptyState(text: "Bandeja limpia.")
                 } else {
                     ForEach(overview.messages ?? [], id: \.subject) { msg in
-                        Group {
-                            if let link = msg.link, let url = URL(string: link) {
-                                Link(destination: url) { MailRow(msg: msg) }
-                            } else {
+                        if let link = msg.link, let url = URL(string: link) {
+                            Button {
+                                Haptics.light()
+                                openInMailApp(url)
+                            } label: {
                                 MailRow(msg: msg)
                             }
+                            .buttonStyle(.plain)
+                        } else {
+                            MailRow(msg: msg)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/// Abre el correo en la app de Gmail si está instalada (universal link),
+/// y solo cae al navegador si no lo está.
+private func openInMailApp(_ url: URL) {
+    UIApplication.shared.open(url, options: [.universalLinksOnly: true]) { opened in
+        if !opened { UIApplication.shared.open(url) }
     }
 }
 
@@ -38,20 +50,20 @@ struct MailRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(msg.from)
-                    .font(.caption.weight(.semibold))
+                    .font(Theme.dCaption.weight(.semibold))
                     .foregroundStyle(Theme.accent)
                     .lineLimit(1)
                 Spacer()
                 Text(Fmt.short(msg.date))
-                    .font(.caption2)
+                    .font(Theme.dCaption2)
                     .foregroundStyle(Theme.muted)
             }
             Text(msg.subject)
-                .font(.headline)
+                .font(Theme.dHeadline)
                 .foregroundStyle(Theme.ink)
                 .lineLimit(2)
             Text(msg.snippet)
-                .font(.caption)
+                .font(Theme.dCaption)
                 .foregroundStyle(Theme.muted)
                 .lineLimit(2)
         }

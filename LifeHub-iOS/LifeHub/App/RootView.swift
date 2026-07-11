@@ -59,15 +59,15 @@ struct MoreLink<Destination: View>: View {
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(Theme.dTitle3)
                     .foregroundStyle(Theme.accent)
                     .frame(width: 32)
                 Text(label)
-                    .font(.headline)
+                    .font(Theme.dHeadline)
                     .foregroundStyle(Theme.ink)
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.footnote)
+                    .font(Theme.dFootnote)
                     .foregroundStyle(Theme.muted)
             }
             .card()
