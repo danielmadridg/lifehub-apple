@@ -6,10 +6,13 @@ struct StudiesView: View {
     @State private var overview: StudyOverview?
     @State private var error: String?
     @State private var refreshing = false
+    @State private var claude: ClaudeUsage?
 
     var body: some View {
         Screen(title: "Estudios", refresh: { await load() }) {
             CoachCard { try await API.shared.aiStudies() }
+
+            if let claude { ClaudeUsageCard(usage: claude) }
 
             if let error {
                 ErrorCard(detail: error) { await load() }
@@ -104,6 +107,7 @@ struct StudiesView: View {
 
     func load(refresh: Bool = false) async {
         if refresh { refreshing = true }
+        claude = try? await API.shared.claudeUsage()
         do {
             overview = try await API.shared.studies(refresh: refresh)
             error = nil
@@ -111,5 +115,62 @@ struct StudiesView: View {
             self.error = error.localizedDescription
         }
         refreshing = false
+    }
+}
+
+/// Uso de Claude (sesión de 5 h y semanal) con la cuenta atrás hasta el reinicio.
+struct ClaudeUsageCard: View {
+    let usage: ClaudeUsage
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 15, weight: .light))
+                    .foregroundStyle(Theme.accent)
+                Text("Uso de Claude")
+                    .font(Theme.dHeadline)
+                    .foregroundStyle(Theme.ink)
+            }
+            if let s = usage.session { row("Sesión (5 h)", s) }
+            if let w = usage.weekly { row("Semanal", w) }
+        }
+        .card()
+    }
+
+    @ViewBuilder
+    func row(_ label: String, _ w: ClaudeUsage.Window) -> some View {
+        HStack {
+            Text(label)
+                .font(Theme.dSubheadline)
+                .foregroundStyle(Theme.muted)
+            Spacer()
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(tokens(w.tokens))
+                    .font(Theme.dSubheadline.weight(.semibold))
+                    .foregroundStyle(Theme.ink)
+                if let c = countdown(w.reset) {
+                    Text("reinicia en \(c)")
+                        .font(Theme.dCaption2)
+                        .foregroundStyle(Theme.accent)
+                }
+            }
+        }
+    }
+
+    func tokens(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1f M tokens", Double(n) / 1_000_000) }
+        if n >= 1_000 { return "\(n / 1000) K tokens" }
+        return "\(n) tokens"
+    }
+
+    func countdown(_ iso: String?) -> String? {
+        guard let d = Fmt.date(iso) else { return nil }
+        let s = d.timeIntervalSinceNow
+        if s <= 0 { return "ahora" }
+        let days = Int(s) / 86400, hours = (Int(s) % 86400) / 3600, mins = (Int(s) % 3600) / 60
+        if days > 0 { return "\(days) d \(hours) h" }
+        if hours > 0 { return "\(hours) h \(mins) min" }
+        return "\(mins) min"
     }
 }

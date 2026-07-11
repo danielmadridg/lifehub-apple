@@ -33,6 +33,7 @@ extension API {
     func health() async throws -> [HealthDay] { try await request("/health") }
     func authStatus() async throws -> AuthStatus { try await request("/auth/status") }
     func authGoogleURL() async throws -> GoogleURLResponse { try await request("/auth/google/url") }
+    func claudeUsage() async throws -> ClaudeUsage { try await request("/claude/usage") }
 
     // ── IA ──────────────────────────────────────────────────────────────
     func aiToday() async throws -> AIText { try await request("/ai/today") }
