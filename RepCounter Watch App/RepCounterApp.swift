@@ -298,7 +298,7 @@ struct WorkoutView: View {
     private var exerciseView: some View {
         VStack(spacing: 4) {
             // Cabecera estilo Life Hub
-            Text("\(index + 1)/\(store.exercises.count) · SERIE \(setsDone + 1)/\(exercise.target_sets)")
+            Text("\(index + 1)/\(store.exercises.count) · SERIE \(min(setsDone + 1, exercise.target_sets))/\(exercise.target_sets)")
                 .font(.system(size: 9, weight: .semibold))
                 .tracking(1.5)
                 .foregroundStyle(Theme.accent)
