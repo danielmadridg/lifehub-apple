@@ -2,92 +2,70 @@ import Combine
 import CoreMotion
 import WatchKit
 
-// Detector de repeticiones v6 — cuenta en el EXTREMO del movimiento.
+// Detector de repeticiones v7 — por ORIENTACIÓN de la muñeca (sin deriva).
 //
-// Idea física: en un movimiento suave la velocidad es MÁXIMA a mitad de recorrido
-// y CERO en los extremos (arriba/abajo, cerca/lejos). Por eso contamos en el
-// cruce por cero de la velocidad (= punto de giro = extremo), no a mitad.
+// Por qué no velocidad: integrar la aceleración deriva y produce ráfagas de
+// conteo (el curl "empezaba bien y luego contaba mucho de golpe") y en
+// horizontal el eje se estimaba mal (chest press / pec fly no contaban nada).
 //
-// Por tipo:
-//  - .vertical  : velocidad vertical (aceleración proyectada sobre la gravedad,
-//                 con signo: + = hacia arriba). Cuenta arriba (countHigh) o abajo.
-//  - .horizontal: velocidad en el plano horizontal sobre su eje principal. El
-//                 extremo que cuenta es el que cierra la fase MÁS FUERTE (la
-//                 concéntrica: empujar en press, cerrar en pec fly, tirar en row).
-//  - .manual    : no auto-cuenta (máquinas de pierna); se usa +/−.
+// Este mide la DIRECCIÓN DE LA GRAVEDAD en el marco del reloj (viene de la
+// fusión de sensores, no deriva). En casi todos los ejercicios la muñeca gira
+// de forma repetible en cada repe: curl, press, elevaciones, chest press, pec
+// fly, row, jalón… Se elige solo el eje que más varía, se detectan sus picos
+// (extremos del recorrido) y se cuenta uno por repe.
 //
-// Para NO contar de más: exige un CICLO COMPLETO (fase opuesta previa) antes de
-// cada conteo. Así, girar la muñeca para pulsar "Terminar" no suma otra repe,
-// porque no viene precedido de la fase opuesta.
+//  - Filtro de amplitud: ignora micro-giros (y el gesto de girar para terminar).
+//  - Prominencia adaptativa + refractario: no cuenta dobles ni ruido.
+//  - .manual: máquinas de pierna (la muñeca no se mueve) → se cuenta con +/−.
 final class RepDetector: ObservableObject {
     @Published var reps = 0
     @Published var running = false
     @Published var manual = false
 
-    enum Mode { case vertical, horizontal, manual }
+    enum Mode { case auto, manual }
 
     struct Profile {
         var mode: Mode
-        var countHigh: Bool      // (vertical) contar arriba (true) o abajo (false)
-        var floor: Double        // m/s: amplitud mínima de velocidad
-        var peakFraction: Double
-        var minRep: Double
+        var minAmp: Double   // amplitud mínima del giro (pico-valle) por repe
+        var minRep: Double   // s mínimos entre repes
     }
 
     static func profile(for name: String) -> Profile {
         let n = name.lowercased()
-
-        // Máquinas de pierna → manual.
         if n.contains("leg extension") || n.contains("leg curl") || n.contains("leg press")
             || n.contains("extension de cuadriceps") || n.contains("extensión de cuádriceps")
             || n.contains("curl femoral") || n.contains("femoral")
             || n.contains("prensa") || n.contains("quad") {
-            return Profile(mode: .manual, countHigh: true, floor: 0, peakFraction: 0, minRep: 0)
+            return Profile(mode: .manual, minAmp: 0, minRep: 0)
         }
-
-        // Horizontales (acercar/alejar del cuerpo).
-        if n.contains("chest press") || n.contains("pec fly") || n.contains("pec deck")
-            || n.contains("cable row") || n.contains("seated row") || n.contains("crossover")
-            || n.contains("cruces") || n.contains("aperturas en polea") {
-            return Profile(mode: .horizontal, countHigh: true, floor: 0.09, peakFraction: 0.45, minRep: 0.9)
-        }
-
-        // Verticales que cuentan ABAJO (contracción abajo): jalones, pushdown.
-        let down = n.contains("pulldown") || n.contains("pull-down") || n.contains("pull down")
-            || n.contains("jalon") || n.contains("jalón") || n.contains("pushdown")
-            || n.contains("push-down") || n.contains("push down")
-
-        return Profile(mode: .vertical, countHigh: !down, floor: 0.08, peakFraction: 0.45, minRep: 0.9)
+        return Profile(mode: .auto, minAmp: 0.12, minRep: 0.7)
     }
 
-    private var profile = Profile(mode: .vertical, countHigh: true, floor: 0.08, peakFraction: 0.45, minRep: 0.9)
+    private var profile = Profile(mode: .auto, minAmp: 0.12, minRep: 0.7)
 
     private let motion = CMMotionManager()
     private let queue = OperationQueue()
 
-    private var meanAcc = 0.0
-    private var vel = 0.0
-    private var velH = SIMD3<Double>(0, 0, 0)
-    private var pDir = SIMD3<Double>(0, 0, 0)
-    private var envelope = 0.0
-    private var lastT: TimeInterval = 0
-    private var lastRep: TimeInterval = 0
+    // Media y varianza por eje de la gravedad (para elegir el eje que más gira).
+    private var mean = [0.0, 0.0, 0.0]
+    private var vari = [0.0, 0.0, 0.0]
+    private var primed = false
 
-    // Fase actual del movimiento
-    private var phaseSign = 0          // +1 subiendo/avanzando, -1 bajando/volviendo
-    private var phasePeak = 0.0        // pico de |v| en la fase actual
-    private var oppSeen = false        // ¿hubo fase opuesta fuerte desde el último conteo?
-    // Aprendizaje del extremo que cuenta en horizontales
-    private var hTargetSign = 0
-    private var learnPos = 0.0, learnNeg = 0.0
+    // Detección de picos/valles sobre el eje elegido.
+    private var searchingPeak = true
+    private var ext = 0.0             // extremo en curso (máx si busca pico, mín si valle)
+    private var extT: TimeInterval = 0
+    private var haveValley = false    // ¿hubo un valle desde el último pico contado?
+    private var amp = 0.2             // amplitud típica pico-valle (EMA)
+    private var lastRep: TimeInterval = 0
+    private var lastValleyVal = 0.0
 
     func start(for exerciseName: String) {
         profile = Self.profile(for: exerciseName)
         reps = 0
-        meanAcc = 0; vel = 0; velH = .zero; pDir = .zero
-        envelope = 0; lastT = 0; lastRep = 0
-        phaseSign = 0; phasePeak = 0; oppSeen = false
-        hTargetSign = 0; learnPos = 0; learnNeg = 0
+        mean = [0, 0, 0]; vari = [0, 0, 0]; primed = false
+        searchingPeak = true; ext = 0; extT = 0; haveValley = false
+        amp = 0.2; lastRep = 0; lastValleyVal = 0
         running = true
         manual = profile.mode == .manual
 
@@ -101,87 +79,57 @@ final class RepDetector: ObservableObject {
 
     private func process(_ d: CMDeviceMotion) {
         let t = d.timestamp
-        let dt = lastT > 0 ? min(0.1, t - lastT) : 1.0 / 50.0
-        lastT = t
+        let g = [d.gravity.x, d.gravity.y, d.gravity.z]
 
-        let a = SIMD3(d.userAcceleration.x, d.userAcceleration.y, d.userAcceleration.z)
-        let g = SIMD3(d.gravity.x, d.gravity.y, d.gravity.z)
+        if !primed { mean = g; primed = true }
 
-        // Señal de velocidad con signo a lo largo del eje activo. Fuga SUAVE
-        // (0.995 ≈ 2 s) para no matar repes lentas.
-        var v: Double
-        if profile.mode == .horizontal {
-            let vertComp = dot(a, g)
-            let aH = (a - g * vertComp) * 9.81
-            velH = velH * 0.995 + aH * dt
-            let speed = length(velH)
-            if speed > 1e-4 {
-                let dir = velH / speed
-                pDir = pDir + 0.05 * (dir - pDir)
-                if length(pDir) > 1e-4 { pDir = normalize(pDir) }
-            }
-            v = dot(velH, pDir)
-        } else {
-            // + = hacia arriba (aceleración opuesta a la gravedad).
-            let upAcc = -dot(a, g)
-            meanAcc += 0.01 * (upAcc - meanAcc)
-            vel = vel * 0.995 + (upAcc - meanAcc) * 9.81 * dt
-            v = vel
+        // Media lenta y varianza por eje.
+        for i in 0..<3 {
+            mean[i] += 0.01 * (g[i] - mean[i])
+            let dev = g[i] - mean[i]
+            vari[i] += 0.01 * (dev * dev - vari[i])
         }
+        // Eje que más gira en este ejercicio.
+        var axis = 0
+        if vari[1] > vari[axis] { axis = 1 }
+        if vari[2] > vari[axis] { axis = 2 }
 
-        // Envolvente adaptativa de la amplitud de velocidad.
-        let mag = abs(v)
-        if mag > envelope { envelope += 0.15 * (mag - envelope) }
-        else { envelope += 0.02 * (mag - envelope) }
+        let s = g[axis] - mean[axis]                 // señal centrada en 0
+        let prom = max(0.05, 0.30 * amp)             // prominencia mínima del pico
 
-        let hi = max(profile.floor, envelope * profile.peakFraction)
-        let lo = hi * 0.25
-
-        // Seguimiento de fase: arranca/mantiene la fase cuando |v| supera hi.
-        if v > hi {
-            if phaseSign <= 0 { phaseSign = 1; phasePeak = 0 }
-            phasePeak = max(phasePeak, v)
-        } else if v < -hi {
-            if phaseSign >= 0 { phaseSign = -1; phasePeak = 0 }
-            phasePeak = max(phasePeak, -v)
-        } else if abs(v) < lo, phaseSign != 0, phasePeak > hi {
-            // Cruce por cero tras una fase fuerte = EXTREMO (punto de giro).
-            turningPoint(endedSign: phaseSign, peak: phasePeak, t: t)
-            phaseSign = 0; phasePeak = 0
+        if searchingPeak {
+            if s > ext { ext = s; extT = t }
+            if s < ext - prom {                       // confirma un PICO en `ext`
+                onPeak(value: ext, t: extT)
+                searchingPeak = false
+                ext = s                               // empieza a buscar el valle
+            }
+        } else {
+            if s < ext { ext = s; extT = t }
+            if s > ext + prom {                       // confirma un VALLE
+                lastValleyVal = ext
+                haveValley = true
+                searchingPeak = true
+                ext = s
+            }
         }
     }
 
-    private func turningPoint(endedSign: Int, peak: Double, t: TimeInterval) {
-        // Determina qué signo de fase "cuenta" (concéntrica).
-        let target: Int
-        if profile.mode == .horizontal {
-            if hTargetSign == 0 {
-                // Aprende con el primer ciclo: la fase de mayor pico es la concéntrica.
-                if endedSign > 0 { learnPos = max(learnPos, peak) } else { learnNeg = max(learnNeg, peak) }
-                if learnPos > profile.floor, learnNeg > profile.floor {
-                    hTargetSign = learnPos >= learnNeg ? 1 : -1
-                }
-                oppSeen = true      // durante el aprendizaje no contamos aún
-                return
-            }
-            target = hTargetSign
-        } else {
-            target = profile.countHigh ? 1 : -1
-        }
+    private func onPeak(value: Double, t: TimeInterval) {
+        let ptp = value - lastValleyVal               // amplitud pico-valle
+        // Actualiza la amplitud típica solo con giros claros.
+        if ptp > profile.minAmp { amp += 0.25 * (ptp - amp) }
 
-        if endedSign == target {
-            // Extremo que cuenta: exige ciclo completo previo y refractario.
-            if oppSeen, t - lastRep > profile.minRep {
-                lastRep = t
-                oppSeen = false
-                DispatchQueue.main.async {
-                    self.reps += 1
-                    WKInterfaceDevice.current().play(.notification)
-                }
+        // Cuenta si: hubo un valle antes (ciclo completo), amplitud suficiente y
+        // parecida a la de tus repes (descarta el gesto de terminar), y refractario.
+        let amplitudeOK = ptp > profile.minAmp && ptp > 0.5 * amp
+        if haveValley, amplitudeOK, t - lastRep > profile.minRep {
+            lastRep = t
+            haveValley = false
+            DispatchQueue.main.async {
+                self.reps += 1
+                WKInterfaceDevice.current().play(.notification)
             }
-        } else {
-            // Extremo opuesto (fase excéntrica): habilita el siguiente conteo.
-            oppSeen = true
         }
     }
 
