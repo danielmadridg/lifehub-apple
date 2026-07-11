@@ -61,4 +61,19 @@ enum API {
         let (data, _) = try await URLSession.shared.data(for: bearerRequest("/api/habits/\(id)/undo", method: "POST"))
         return try JSONDecoder().decode(WatchHabit.self, from: data)
     }
+
+    // ── Finalizar el entreno (mismo backend que el móvil, sin jerarquía) ─────
+    // Las series se registran con /gym/device/set (crea el entreno activo). Al
+    // terminar en el reloj se FINALIZA ese entreno para que salga en "últimos
+    // entrenos" y sus pesos cuenten para las recomendaciones de la semana.
+    private struct ActiveWorkout: Codable { let id: Int }
+
+    @discardableResult
+    static func finishActiveWorkout() async -> Bool {
+        guard let (data, _) = try? await URLSession.shared.data(for: bearerRequest("/api/gym/workouts/active")),
+              let w = try? JSONDecoder().decode(ActiveWorkout.self, from: data)
+        else { return false }   // no hay entreno activo (o null → falla el decode)
+        _ = try? await URLSession.shared.data(for: bearerRequest("/api/gym/workouts/\(w.id)/finish", method: "POST"))
+        return true
+    }
 }

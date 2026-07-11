@@ -270,6 +270,7 @@ struct WorkoutView: View {
     @State private var sending = false
     @State private var finishedAll = false
     @State private var totalSets = 0
+    @State private var finalized = false
     @FocusState private var weightFocused: Bool
 
     var body: some View {
@@ -379,16 +380,26 @@ struct WorkoutView: View {
             Text(store.routine ?? "Hecho")
                 .font(.system(.title3, design: .serif))
                 .foregroundStyle(Theme.ink)
-            Text("\(totalSets) series registradas en Life Hub")
+            Text("\(totalSets) series guardadas")
                 .font(.caption2)
                 .foregroundStyle(Theme.muted)
                 .multilineTextAlignment(.center)
-            Text("Termina el entreno desde la app para ver el resumen.")
-                .font(.system(size: 10))
-                .foregroundStyle(Theme.muted)
-                .multilineTextAlignment(.center)
+            HStack(spacing: 5) {
+                if !finalized { ProgressView().scaleEffect(0.6) }
+                Text(finalized ? "Entreno finalizado en Life Hub" : "Finalizando…")
+                    .font(.system(size: 10))
+                    .foregroundStyle(finalized ? Theme.gain : Theme.muted)
+            }
+            .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 4)
+        .task {
+            // Finaliza el entreno en el backend (mismo que el móvil): aparece en
+            // "últimos entrenos" y sus pesos cuentan para la recomendación.
+            guard !finalized else { return }
+            _ = await API.finishActiveWorkout()
+            finalized = true
+        }
     }
 
     // ── Lógica ──────────────────────────────────────────────────────────────
