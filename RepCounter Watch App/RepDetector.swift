@@ -2,20 +2,23 @@ import Combine
 import CoreMotion
 import WatchKit
 
-// Detector de repeticiones v5 — por TIPO de movimiento del ejercicio.
+// Detector de repeticiones v6 — cuenta en el EXTREMO del movimiento.
 //
-// Cada ejercicio se cuenta según cómo se mueve la mano:
-//  - .vertical   : la mano sube y baja (press, curl, jalón, elevaciones…). Se
-//                  mide la velocidad VERTICAL (aceleración proyectada sobre la
-//                  gravedad).
-//  - .horizontal : la mano se acerca/aleja del cuerpo (chest press, pec fly,
-//                  seated row, cruces). Se mide la velocidad en el PLANO
-//                  horizontal, sobre su eje principal.
-//  - .manual     : máquinas de pierna donde la muñeca no se mueve. No hay
-//                  auto-conteo: se cuenta con los botones +/−.
+// Idea física: en un movimiento suave la velocidad es MÁXIMA a mitad de recorrido
+// y CERO en los extremos (arriba/abajo, cerca/lejos). Por eso contamos en el
+// cruce por cero de la velocidad (= punto de giro = extremo), no a mitad.
 //
-// En vertical y horizontal se cuenta una repe por ciclo completo (ida y vuelta)
-// con envolvente adaptativa, histéresis y refractario. Tic háptico fuerte por repe.
+// Por tipo:
+//  - .vertical  : velocidad vertical (aceleración proyectada sobre la gravedad,
+//                 con signo: + = hacia arriba). Cuenta arriba (countHigh) o abajo.
+//  - .horizontal: velocidad en el plano horizontal sobre su eje principal. El
+//                 extremo que cuenta es el que cierra la fase MÁS FUERTE (la
+//                 concéntrica: empujar en press, cerrar en pec fly, tirar en row).
+//  - .manual    : no auto-cuenta (máquinas de pierna); se usa +/−.
+//
+// Para NO contar de más: exige un CICLO COMPLETO (fase opuesta previa) antes de
+// cada conteo. Así, girar la muñeca para pulsar "Terminar" no suma otra repe,
+// porque no viene precedido de la fase opuesta.
 final class RepDetector: ObservableObject {
     @Published var reps = 0
     @Published var running = false
@@ -25,59 +28,69 @@ final class RepDetector: ObservableObject {
 
     struct Profile {
         var mode: Mode
+        var countHigh: Bool      // (vertical) contar arriba (true) o abajo (false)
         var floor: Double        // m/s: amplitud mínima de velocidad
         var peakFraction: Double
-        var minRep: Double       // s entre repes
+        var minRep: Double
     }
 
-    /// Modo + parámetros según el ejercicio (nombre, ES + EN).
     static func profile(for name: String) -> Profile {
         let n = name.lowercased()
 
-        // Máquinas de pierna: la muñeca no se mueve → manual.
+        // Máquinas de pierna → manual.
         if n.contains("leg extension") || n.contains("leg curl") || n.contains("leg press")
             || n.contains("extension de cuadriceps") || n.contains("extensión de cuádriceps")
             || n.contains("curl femoral") || n.contains("femoral")
             || n.contains("prensa") || n.contains("quad") {
-            return Profile(mode: .manual, floor: 0, peakFraction: 0, minRep: 0)
+            return Profile(mode: .manual, countHigh: true, floor: 0, peakFraction: 0, minRep: 0)
         }
 
-        // Movimientos horizontales (acercar/alejar del cuerpo).
+        // Horizontales (acercar/alejar del cuerpo).
         if n.contains("chest press") || n.contains("pec fly") || n.contains("pec deck")
             || n.contains("cable row") || n.contains("seated row") || n.contains("crossover")
             || n.contains("cruces") || n.contains("aperturas en polea") {
-            return Profile(mode: .horizontal, floor: 0.08, peakFraction: 0.42, minRep: 0.8)
+            return Profile(mode: .horizontal, countHigh: true, floor: 0.09, peakFraction: 0.45, minRep: 0.9)
         }
 
-        // Resto: vertical (sube/baja).
-        return Profile(mode: .vertical, floor: 0.08, peakFraction: 0.42, minRep: 0.85)
+        // Verticales que cuentan ABAJO (contracción abajo): jalones, pushdown.
+        let down = n.contains("pulldown") || n.contains("pull-down") || n.contains("pull down")
+            || n.contains("jalon") || n.contains("jalón") || n.contains("pushdown")
+            || n.contains("push-down") || n.contains("push down")
+
+        return Profile(mode: .vertical, countHigh: !down, floor: 0.08, peakFraction: 0.45, minRep: 0.9)
     }
 
-    private var profile = Profile(mode: .vertical, floor: 0.08, peakFraction: 0.42, minRep: 0.85)
+    private var profile = Profile(mode: .vertical, countHigh: true, floor: 0.08, peakFraction: 0.45, minRep: 0.9)
 
     private let motion = CMMotionManager()
     private let queue = OperationQueue()
 
-    // Integración / detección
     private var meanAcc = 0.0
-    private var vel = 0.0                       // velocidad a lo largo del eje activo
-    private var velH = SIMD3<Double>(0, 0, 0)   // velocidad horizontal (3D en plano ⊥ g)
-    private var pDir = SIMD3<Double>(0, 0, 0)   // eje horizontal principal
+    private var vel = 0.0
+    private var velH = SIMD3<Double>(0, 0, 0)
+    private var pDir = SIMD3<Double>(0, 0, 0)
     private var envelope = 0.0
     private var lastT: TimeInterval = 0
     private var lastRep: TimeInterval = 0
-    private var seenPos = false, seenNeg = false
+
+    // Fase actual del movimiento
+    private var phaseSign = 0          // +1 subiendo/avanzando, -1 bajando/volviendo
+    private var phasePeak = 0.0        // pico de |v| en la fase actual
+    private var oppSeen = false        // ¿hubo fase opuesta fuerte desde el último conteo?
+    // Aprendizaje del extremo que cuenta en horizontales
+    private var hTargetSign = 0
+    private var learnPos = 0.0, learnNeg = 0.0
 
     func start(for exerciseName: String) {
         profile = Self.profile(for: exerciseName)
         reps = 0
         meanAcc = 0; vel = 0; velH = .zero; pDir = .zero
         envelope = 0; lastT = 0; lastRep = 0
-        seenPos = false; seenNeg = false
+        phaseSign = 0; phasePeak = 0; oppSeen = false
+        hTargetSign = 0; learnPos = 0; learnNeg = 0
         running = true
         manual = profile.mode == .manual
 
-        // En manual no se arranca el sensor: se cuenta con los botones.
         guard profile.mode != .manual, motion.isDeviceMotionAvailable else { return }
         motion.deviceMotionUpdateInterval = 1.0 / 50.0
         motion.startDeviceMotionUpdates(to: queue) { [weak self] data, _ in
@@ -92,53 +105,83 @@ final class RepDetector: ObservableObject {
         lastT = t
 
         let a = SIMD3(d.userAcceleration.x, d.userAcceleration.y, d.userAcceleration.z)
-        let g = SIMD3(d.gravity.x, d.gravity.y, d.gravity.z)  // |g| ~ 1
+        let g = SIMD3(d.gravity.x, d.gravity.y, d.gravity.z)
 
-        let s: Double
+        // Señal de velocidad con signo a lo largo del eje activo. Fuga SUAVE
+        // (0.995 ≈ 2 s) para no matar repes lentas.
+        var v: Double
         if profile.mode == .horizontal {
-            // Aceleración en el plano horizontal (quita la componente vertical).
             let vertComp = dot(a, g)
             let aH = (a - g * vertComp) * 9.81
-            velH = velH * 0.95 + aH * dt
-            // Eje principal = EMA de la dirección de la velocidad horizontal.
+            velH = velH * 0.995 + aH * dt
             let speed = length(velH)
             if speed > 1e-4 {
                 let dir = velH / speed
                 pDir = pDir + 0.05 * (dir - pDir)
                 if length(pDir) > 1e-4 { pDir = normalize(pDir) }
             }
-            s = dot(velH, pDir)   // velocidad con signo a lo largo del eje del ejercicio
+            v = dot(velH, pDir)
         } else {
-            // Vertical: aceleración proyectada sobre la gravedad.
-            let vertAcc = dot(a, g)
-            meanAcc += 0.02 * (vertAcc - meanAcc)
-            let aHP = (vertAcc - meanAcc) * 9.81
-            vel = vel * 0.95 + aHP * dt
-            s = vel
+            // + = hacia arriba (aceleración opuesta a la gravedad).
+            let upAcc = -dot(a, g)
+            meanAcc += 0.01 * (upAcc - meanAcc)
+            vel = vel * 0.995 + (upAcc - meanAcc) * 9.81 * dt
+            v = vel
         }
 
-        // Envolvente adaptativa.
-        let mag = abs(s)
+        // Envolvente adaptativa de la amplitud de velocidad.
+        let mag = abs(v)
         if mag > envelope { envelope += 0.15 * (mag - envelope) }
         else { envelope += 0.02 * (mag - envelope) }
 
         let hi = max(profile.floor, envelope * profile.peakFraction)
-        let lo = hi * 0.30
+        let lo = hi * 0.25
 
-        if s > hi { seenPos = true }
-        if s < -hi { seenNeg = true }
+        // Seguimiento de fase: arranca/mantiene la fase cuando |v| supera hi.
+        if v > hi {
+            if phaseSign <= 0 { phaseSign = 1; phasePeak = 0 }
+            phasePeak = max(phasePeak, v)
+        } else if v < -hi {
+            if phaseSign >= 0 { phaseSign = -1; phasePeak = 0 }
+            phasePeak = max(phasePeak, -v)
+        } else if abs(v) < lo, phaseSign != 0, phasePeak > hi {
+            // Cruce por cero tras una fase fuerte = EXTREMO (punto de giro).
+            turningPoint(endedSign: phaseSign, peak: phasePeak, t: t)
+            phaseSign = 0; phasePeak = 0
+        }
+    }
 
-        if abs(s) < lo, seenPos, seenNeg {
-            if t - lastRep > profile.minRep, envelope > profile.floor * 0.8 {
+    private func turningPoint(endedSign: Int, peak: Double, t: TimeInterval) {
+        // Determina qué signo de fase "cuenta" (concéntrica).
+        let target: Int
+        if profile.mode == .horizontal {
+            if hTargetSign == 0 {
+                // Aprende con el primer ciclo: la fase de mayor pico es la concéntrica.
+                if endedSign > 0 { learnPos = max(learnPos, peak) } else { learnNeg = max(learnNeg, peak) }
+                if learnPos > profile.floor, learnNeg > profile.floor {
+                    hTargetSign = learnPos >= learnNeg ? 1 : -1
+                }
+                oppSeen = true      // durante el aprendizaje no contamos aún
+                return
+            }
+            target = hTargetSign
+        } else {
+            target = profile.countHigh ? 1 : -1
+        }
+
+        if endedSign == target {
+            // Extremo que cuenta: exige ciclo completo previo y refractario.
+            if oppSeen, t - lastRep > profile.minRep {
                 lastRep = t
-                seenPos = false; seenNeg = false
+                oppSeen = false
                 DispatchQueue.main.async {
                     self.reps += 1
                     WKInterfaceDevice.current().play(.notification)
                 }
-            } else {
-                seenPos = false; seenNeg = false
             }
+        } else {
+            // Extremo opuesto (fase excéntrica): habilita el siguiente conteo.
+            oppSeen = true
         }
     }
 
@@ -147,7 +190,6 @@ final class RepDetector: ObservableObject {
         motion.stopDeviceMotionUpdates()
     }
 
-    /// Corrección manual (+/-). En ejercicios .manual es la única forma de contar.
     func adjust(_ delta: Int) {
         reps = max(0, reps + delta)
         if delta > 0 { WKInterfaceDevice.current().play(.click) }
