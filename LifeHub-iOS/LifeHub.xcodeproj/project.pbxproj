@@ -31,6 +31,7 @@
 		BE3BC8EA231ACD9644F1E464 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155117F5227D016AB83797FA /* Components.swift */; };
 		BFC5FF771B123691916B5B77 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B256F69F68CAC92B0847C4 /* Models.swift */; };
 		C08E87BDE3D594A9395BA96D /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C0362133DE518DA3B0738D /* TasksView.swift */; };
+		CC1C02ECEF91C74138DDA0B4 /* Season.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77F2637A1D4672AAC983F79 /* Season.swift */; };
 		CCBC1A4B54A71586C3BA15CB /* DMSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EE1E81298449DE2E13786530 /* DMSans-Bold.ttf */; };
 		CE9B38C317D2103532B3E7D6 /* GymTrainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */; };
 		D21E7CE7780713137FA2318D /* GymProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */; };
@@ -74,7 +75,8 @@
 		9371C93EB9B366D0D65AC57F /* Fraunces-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Regular.ttf"; sourceTree = "<group>"; };
 		941F31B5D8CB075E85DA95B5 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
 		AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymProgressView.swift; sourceTree = "<group>"; };
-		D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LifeHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LifeHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D77F2637A1D4672AAC983F79 /* Season.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Season.swift; sourceTree = "<group>"; };
 		E0E7D68B0AF5FEA4D0916B1F /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
 		E9595279D6D2FB5739C65A80 /* Me.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Me.swift; sourceTree = "<group>"; };
 		EA0B3805422377429A64D2C6 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 				E9595279D6D2FB5739C65A80 /* Me.swift */,
 				83B256F69F68CAC92B0847C4 /* Models.swift */,
 				F423D3B16C70AA07A87DF0DD /* Notifications.swift */,
+				D77F2637A1D4672AAC983F79 /* Season.swift */,
 				35E59ADB0C674A664536FDA5 /* Theme.swift */,
 			);
 			path = Core;
@@ -266,6 +269,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 14B2C1D6FC8E9CBA3411BECB /* Build configuration list for PBXProject "LifeHub" */;
 			developmentRegion = en;
@@ -331,6 +336,7 @@
 				E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */,
 				9BB8A9655A4E5B542A73A00F /* RoutineManagerView.swift in Sources */,
 				306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */,
+				CC1C02ECEF91C74138DDA0B4 /* Season.swift in Sources */,
 				149CBF04C2FEEB47D3C36C29 /* SettingsView.swift in Sources */,
 				49AC3E4F2F95D7A0AE303134 /* StudiesView.swift in Sources */,
 				C08E87BDE3D594A9395BA96D /* TasksView.swift in Sources */,
@@ -466,7 +472,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHub/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -488,7 +493,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHub/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

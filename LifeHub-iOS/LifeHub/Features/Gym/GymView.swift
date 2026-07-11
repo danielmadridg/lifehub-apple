@@ -63,8 +63,8 @@ struct GymView: View {
                     }
                 }
 
-                SectionHeader(title: "Rutinas")
-                ForEach(routines) { routine in
+                SectionHeader(title: Season.isSummer ? "Rutinas · Verano" : "Rutinas")
+                ForEach(Season.filter(routines, name: \.name)) { routine in
                     RoutineCard(routine: routine) {
                         Haptics.medium()
                         Task { await start(routine: routine) }

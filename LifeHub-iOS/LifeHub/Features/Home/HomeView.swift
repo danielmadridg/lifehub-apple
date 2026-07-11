@@ -15,7 +15,13 @@ struct HomeView: View {
 
     var pendingHabits: [Habit] { habits.filter { $0.due_today } }
     var pendingTasks: [TaskItem] { tasks.filter { !$0.done } }
-    var todayRoutine: GymRoutine? { routines.first { $0.today == true } }
+    var todayRoutine: GymRoutine? {
+        if Season.isSummer {
+            guard let n = Season.todaySummerRoutine else { return nil }
+            return routines.first { $0.name == n }
+        }
+        return routines.first { $0.today == true }
+    }
     var todayDiet: DietDay? { diet?.days.first { $0.is_today } }
     var todayEvents: [CalendarEvent] {
         events.filter {

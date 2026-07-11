@@ -13,6 +13,14 @@ struct RepCounterApp: App {
     }
 }
 
+// Temporada del plan de gym: en verano (jun–sep) se usa Front Day / Back Day.
+enum WatchSeason {
+    static let summerNames: Set<String> = ["Front Day", "Back Day"]
+    static var isSummer: Bool {
+        (6...9).contains(Calendar.current.component(.month, from: .now))
+    }
+}
+
 // Carrusel de pestañas (desliza en horizontal). Gym es la principal (primera).
 struct MainTabView: View {
     @EnvironmentObject var store: Store
@@ -214,19 +222,10 @@ struct RoutinePickerView: View {
                     .multilineTextAlignment(.center)
                     .padding()
             } else {
-                let normal = routines.filter { $0.group != "verano" }
-                let verano = routines.filter { $0.group == "verano" }
+                // Solo la temporada actual (en verano: Front Day / Back Day).
+                let visible = routines.filter { WatchSeason.summerNames.contains($0.name) == WatchSeason.isSummer }
                 List {
-                    if !normal.isEmpty {
-                        Section("Normal") {
-                            ForEach(normal) { r in routineButton(r) }
-                        }
-                    }
-                    if !verano.isEmpty {
-                        Section("Verano") {
-                            ForEach(verano) { r in routineButton(r) }
-                        }
-                    }
+                    ForEach(visible) { r in routineButton(r) }
                 }
             }
         }
