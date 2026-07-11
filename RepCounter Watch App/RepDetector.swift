@@ -2,21 +2,22 @@ import Combine
 import CoreMotion
 import WatchKit
 
-// Detector de repeticiones v7 — por ORIENTACIÓN de la muñeca (sin deriva).
+// Detector de repeticiones v8 — por TRASLACIÓN de la mano (sin deriva).
 //
-// Por qué no velocidad: integrar la aceleración deriva y produce ráfagas de
-// conteo (el curl "empezaba bien y luego contaba mucho de golpe") y en
-// horizontal el eje se estimaba mal (chest press / pec fly no contaban nada).
+// En máquina la muñeca NO gira: solo se traslada por el espacio. Por eso no
+// sirve ni la orientación (no cambia) ni integrar la velocidad (deriva).
 //
-// Este mide la DIRECCIÓN DE LA GRAVEDAD en el marco del reloj (viene de la
-// fusión de sensores, no deriva). En casi todos los ejercicios la muñeca gira
-// de forma repetible en cada repe: curl, press, elevaciones, chest press, pec
-// fly, row, jalón… Se elige solo el eje que más varía, se detectan sus picos
-// (extremos del recorrido) y se cuenta uno por repe.
+// Lo que sí es fiable: la ACELERACIÓN del usuario a lo largo del eje del
+// movimiento. En cada cambio de sentido (los extremos del recorrido: cerca/
+// lejos, arriba/abajo) la mano frena y acelera al revés → hay un PICO de
+// aceleración. Contamos esos picos: uno por repetición. No se integra nada, así
+// que no hay deriva ni con repes lentas.
 //
-//  - Filtro de amplitud: ignora micro-giros (y el gesto de girar para terminar).
-//  - Prominencia adaptativa + refractario: no cuenta dobles ni ruido.
-//  - .manual: máquinas de pierna (la muñeca no se mueve) → se cuenta con +/−.
+//  - Eje del movimiento = eje de mayor varianza de la aceleración (estable en
+//    máquina porque la orientación del reloj es fija).
+//  - Prominencia adaptativa + amplitud parecida a tus repes + refractario →
+//    ignora ruido, micro-movimientos y el gesto de girar para terminar.
+//  - .manual: máquinas de pierna (la mano no se mueve) → se cuenta con +/−.
 final class RepDetector: ObservableObject {
     @Published var reps = 0
     @Published var running = false
@@ -26,7 +27,7 @@ final class RepDetector: ObservableObject {
 
     struct Profile {
         var mode: Mode
-        var minAmp: Double   // amplitud mínima del giro (pico-valle) por repe
+        var minAmp: Double   // g: amplitud mínima del pico de aceleración por repe
         var minRep: Double   // s mínimos entre repes
     }
 
@@ -38,34 +39,35 @@ final class RepDetector: ObservableObject {
             || n.contains("prensa") || n.contains("quad") {
             return Profile(mode: .manual, minAmp: 0, minRep: 0)
         }
-        return Profile(mode: .auto, minAmp: 0.12, minRep: 0.7)
+        return Profile(mode: .auto, minAmp: 0.10, minRep: 0.7)
     }
 
-    private var profile = Profile(mode: .auto, minAmp: 0.12, minRep: 0.7)
+    private var profile = Profile(mode: .auto, minAmp: 0.10, minRep: 0.7)
 
     private let motion = CMMotionManager()
     private let queue = OperationQueue()
 
-    // Media y varianza por eje de la gravedad (para elegir el eje que más gira).
+    // Media y varianza por eje de la aceleración (para elegir el eje del movimiento).
     private var mean = [0.0, 0.0, 0.0]
     private var vari = [0.0, 0.0, 0.0]
+    private var smooth = 0.0          // señal suavizada del eje elegido
     private var primed = false
 
-    // Detección de picos/valles sobre el eje elegido.
+    // Detección de picos/valles.
     private var searchingPeak = true
-    private var ext = 0.0             // extremo en curso (máx si busca pico, mín si valle)
+    private var ext = 0.0
     private var extT: TimeInterval = 0
-    private var haveValley = false    // ¿hubo un valle desde el último pico contado?
-    private var amp = 0.2             // amplitud típica pico-valle (EMA)
+    private var haveValley = false
+    private var amp = 0.3
     private var lastRep: TimeInterval = 0
     private var lastValleyVal = 0.0
 
     func start(for exerciseName: String) {
         profile = Self.profile(for: exerciseName)
         reps = 0
-        mean = [0, 0, 0]; vari = [0, 0, 0]; primed = false
+        mean = [0, 0, 0]; vari = [0, 0, 0]; smooth = 0; primed = false
         searchingPeak = true; ext = 0; extT = 0; haveValley = false
-        amp = 0.2; lastRep = 0; lastValleyVal = 0
+        amp = 0.3; lastRep = 0; lastValleyVal = 0
         running = true
         manual = profile.mode == .manual
 
@@ -79,49 +81,49 @@ final class RepDetector: ObservableObject {
 
     private func process(_ d: CMDeviceMotion) {
         let t = d.timestamp
-        let g = [d.gravity.x, d.gravity.y, d.gravity.z]
+        let a = [d.userAcceleration.x, d.userAcceleration.y, d.userAcceleration.z]
 
-        if !primed { mean = g; primed = true }
-
-        // Media lenta y varianza por eje.
+        // Media (sesgo) y varianza por eje.
         for i in 0..<3 {
-            mean[i] += 0.01 * (g[i] - mean[i])
-            let dev = g[i] - mean[i]
-            vari[i] += 0.01 * (dev * dev - vari[i])
+            mean[i] += 0.02 * (a[i] - mean[i])
+            let dev = a[i] - mean[i]
+            vari[i] += 0.02 * (dev * dev - vari[i])
         }
-        // Eje que más gira en este ejercicio.
+        // Eje del movimiento = el de mayor varianza.
         var axis = 0
         if vari[1] > vari[axis] { axis = 1 }
         if vari[2] > vari[axis] { axis = 2 }
 
-        let s = g[axis] - mean[axis]                 // señal centrada en 0
-        let prom = max(0.05, 0.30 * amp)             // prominencia mínima del pico
+        // Señal centrada y suavizada (~4 muestras) para quitar temblor.
+        let raw = a[axis] - mean[axis]
+        smooth = 0.3 * raw + 0.7 * smooth
+
+        if !primed { ext = smooth; primed = true }
+
+        let prom = max(0.04, 0.30 * amp)
 
         if searchingPeak {
-            if s > ext { ext = s; extT = t }
-            if s < ext - prom {                       // confirma un PICO en `ext`
+            if smooth > ext { ext = smooth; extT = t }
+            if smooth < ext - prom {                  // confirma PICO
                 onPeak(value: ext, t: extT)
                 searchingPeak = false
-                ext = s                               // empieza a buscar el valle
+                ext = smooth
             }
         } else {
-            if s < ext { ext = s; extT = t }
-            if s > ext + prom {                       // confirma un VALLE
+            if smooth < ext { ext = smooth; extT = t }
+            if smooth > ext + prom {                   // confirma VALLE
                 lastValleyVal = ext
                 haveValley = true
                 searchingPeak = true
-                ext = s
+                ext = smooth
             }
         }
     }
 
     private func onPeak(value: Double, t: TimeInterval) {
-        let ptp = value - lastValleyVal               // amplitud pico-valle
-        // Actualiza la amplitud típica solo con giros claros.
+        let ptp = value - lastValleyVal
         if ptp > profile.minAmp { amp += 0.25 * (ptp - amp) }
 
-        // Cuenta si: hubo un valle antes (ciclo completo), amplitud suficiente y
-        // parecida a la de tus repes (descarta el gesto de terminar), y refractario.
         let amplitudeOK = ptp > profile.minAmp && ptp > 0.5 * amp
         if haveValley, amplitudeOK, t - lastRep > profile.minRep {
             lastRep = t
