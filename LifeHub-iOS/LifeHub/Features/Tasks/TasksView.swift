@@ -93,6 +93,7 @@ struct TasksView: View {
         let text = newTask.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         newTask = ""
+        Haptics.light()
         _ = try? await API.shared.createTask(text: text, due: nil)
         await load()
     }
@@ -101,6 +102,7 @@ struct TasksView: View {
         let text = newNote.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         newNote = ""
+        Haptics.light()
         _ = try? await API.shared.createNote(text)
         await load()
     }

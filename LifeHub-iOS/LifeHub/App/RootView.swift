@@ -2,24 +2,32 @@ import SwiftUI
 
 /// Navegación principal: 4 pestañas de uso diario + "Más" (igual que la web).
 struct RootView: View {
+    @State private var tab = 0
+
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             NavigationStack { HomeView() }
                 .tabItem { Label("Hoy", systemImage: "house.fill") }
+                .tag(0)
 
             NavigationStack { GymView() }
                 .tabItem { Label("Gym", systemImage: "dumbbell.fill") }
+                .tag(1)
 
             NavigationStack { NutritionView() }
                 .tabItem { Label("Comida", systemImage: "fork.knife") }
+                .tag(2)
 
             NavigationStack { FinanceView() }
                 .tabItem { Label("Dinero", systemImage: "eurosign.circle.fill") }
+                .tag(3)
 
             NavigationStack { MoreView() }
                 .tabItem { Label("Más", systemImage: "square.grid.2x2.fill") }
+                .tag(4)
         }
         .background(Theme.bg)
+        .onChange(of: tab) { _, _ in Haptics.selection() }
     }
 }
 
@@ -63,5 +71,6 @@ struct MoreLink<Destination: View>: View {
             }
             .card()
         }
+        .simultaneousGesture(TapGesture().onEnded { Haptics.light() })
     }
 }

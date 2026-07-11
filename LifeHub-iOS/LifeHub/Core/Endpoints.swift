@@ -32,6 +32,7 @@ extension API {
     func financeSummary() async throws -> FinanceSummary { try await request("/finance/summary") }
     func health() async throws -> [HealthDay] { try await request("/health") }
     func authStatus() async throws -> AuthStatus { try await request("/auth/status") }
+    func authGoogleURL() async throws -> GoogleURLResponse { try await request("/auth/google/url") }
 
     // ── IA ──────────────────────────────────────────────────────────────
     func aiToday() async throws -> AIText { try await request("/ai/today") }
@@ -88,6 +89,23 @@ extension API {
         try await request("/gym/exercises/\(exerciseId)/recommendation?reps_min=\(repsMin)&reps_max=\(repsMax)")
     }
     func gymRoutines() async throws -> [GymRoutine] { try await request("/gym/routines") }
+    func gymRoutineMode() async throws -> RoutineModeResponse { try await request("/gym/routine-mode") }
+    func gymSetRoutineMode(_ mode: String) async throws -> RoutineModeResponse {
+        try await request("/gym/routine-mode", method: "POST", body: JSONValue.object(["mode": .string(mode)]))
+    }
+    func gymCreateRoutine(name: String, exercises: [JSONValue]) async throws -> GymRoutine {
+        try await request("/gym/routines", method: "POST", body: JSONValue.object([
+            "name": .string(name), "exercises": .array(exercises),
+        ]))
+    }
+    func gymUpdateRoutine(_ id: Int, name: String, exercises: [JSONValue]) async throws -> GymRoutine {
+        try await request("/gym/routines/\(id)", method: "PATCH", body: JSONValue.object([
+            "name": .string(name), "exercises": .array(exercises),
+        ]))
+    }
+    func gymDeleteRoutine(_ id: Int) async throws -> StatusResponse {
+        try await request("/gym/routines/\(id)", method: "DELETE")
+    }
     func gymActiveWorkout() async throws -> GymWorkout? { try await request("/gym/workouts/active") }
     func gymWorkouts() async throws -> [GymWorkoutSummary] { try await request("/gym/workouts") }
     func gymStartWorkout(routineId: Int?) async throws -> GymWorkout {

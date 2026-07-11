@@ -2,44 +2,122 @@ import SwiftUI
 
 /// Ajustes: gestión de hábitos, estado de conexiones y sesión.
 struct SettingsView: View {
-    @State private var status: AuthStatus?
+    var body: some View {
+        Screen(title: "Ajustes") {
+            Text("Todo lo que se edita vive aquí. La app del día a día queda limpia: solo marcar, apuntar y consultar.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.muted)
+
+            SettingsLink(icon: "dumbbell.fill", title: "Rutinas de gym",
+                         hint: "Crear y editar rutinas y ejercicios") { RoutineManagerView() }
+            SettingsLink(icon: "waveform.path.ecg", title: "Hábitos y comidas",
+                         hint: "Crear, editar o pausar tus rutinas diarias") { HabitManagerView() }
+            SettingsLink(icon: "cart.fill", title: "Lista de la compra",
+                         hint: "Añadir o quitar productos") { ShoppingScreen() }
+            SettingsLink(icon: "envelope.fill", title: "Conexiones",
+                         hint: "Token de Google y sesión de Epitech") { ConnectionsView() }
+        }
+    }
+}
+
+struct SettingsLink<Destination: View>: View {
+    let icon: String
+    let title: String
+    let hint: String
+    @ViewBuilder let destination: () -> Destination
 
     var body: some View {
-        Screen(title: "Ajustes", refresh: { status = try? await API.shared.authStatus() }) {
-            SectionHeader(title: "Hábitos y comidas")
-            NavigationLink {
-                HabitManagerView()
-            } label: {
-                HStack {
-                    Label("Gestionar hábitos", systemImage: "slider.horizontal.3")
+        NavigationLink {
+            destination()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(Theme.accent)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
                         .font(.headline)
                         .foregroundStyle(Theme.ink)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.footnote)
+                    Text(hint)
+                        .font(.caption)
                         .foregroundStyle(Theme.muted)
                 }
-                .card()
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.muted)
             }
+            .card()
+        }
+        .simultaneousGesture(TapGesture().onEnded { Haptics.light() })
+    }
+}
 
-            SectionHeader(title: "Conexiones")
+/// Lista de la compra como pantalla completa (reutiliza ShoppingView).
+struct ShoppingScreen: View {
+    var body: some View {
+        Screen(title: "Compra") { ShoppingView() }
+    }
+}
+
+// ── Conexiones (estado + renovar token de Google) ────────────────────────────
+
+struct ConnectionsView: View {
+    @State private var status: AuthStatus?
+    @State private var opening = false
+
+    var body: some View {
+        Screen(title: "Conexiones", refresh: { status = try? await API.shared.authStatus() }) {
+            Text("Estado de tus cuentas. Cuando algo caduque, se renueva desde aquí.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.muted)
+
             if let status {
+                VStack(alignment: .leading, spacing: 10) {
+                    ConnectionRow(
+                        name: "Google · Gmail y Agenda",
+                        connected: status.google.connected,
+                        detail: status.google.days_left.map { "\($0) días" }
+                    )
+                    if !status.google.connected {
+                        HButton(haptic: Haptics.medium) {
+                            Task { await renew() }
+                        } label: {
+                            Text(opening ? "Abriendo Google…" : "Renovar token")
+                                .font(.subheadline.weight(.bold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Theme.accent, in: RoundedRectangle(cornerRadius: 12))
+                                .foregroundStyle(.black)
+                        }
+                        .disabled(opening)
+                    }
+                }
+                .card()
+
                 ConnectionRow(
-                    name: "Google (Correo)",
-                    connected: status.google.connected,
-                    detail: status.google.days_left.map { "\($0) días de token" }
-                )
-                ConnectionRow(
-                    name: "Epitech (Estudios)",
+                    name: "Epitech · intra",
                     connected: status.epitech.connected,
-                    detail: status.epitech.days_left.map { "\($0) días de token" }
+                    detail: status.epitech.days_left.map { "~\($0) días" }
                 )
+                if !status.epitech.connected {
+                    Text("La sesión de Epitech necesita login de Microsoft + 2FA en el ordenador. Pídemelo y lo renovamos.")
+                        .font(.caption)
+                        .foregroundStyle(Theme.muted)
+                }
             } else {
                 SkeletonList(rows: 2)
             }
         }
-        .task {
-            status = try? await API.shared.authStatus()
+        .task { status = try? await API.shared.authStatus() }
+    }
+
+    func renew() async {
+        opening = true
+        defer { opening = false }
+        if let r = try? await API.shared.authGoogleURL(), let url = URL(string: r.url) {
+            await UIApplication.shared.open(url)
         }
     }
 }
@@ -62,7 +140,6 @@ struct ConnectionRow: View {
                 .font(.caption)
                 .foregroundStyle(Theme.muted)
         }
-        .card(padding: 13)
     }
 }
 

@@ -11,14 +11,17 @@ struct NutritionView: View {
                 Text("Dieta").tag(1)
                 Text("Macros").tag(2)
                 Text("Compra").tag(3)
+                Text("Historial").tag(4)
             }
             .pickerStyle(.segmented)
+            .onChange(of: tab) { _, _ in Haptics.selection() }
 
             switch tab {
             case 0: TodayList(categories: Category.nutrition)
             case 1: DietView()
             case 2: MacrosView()
-            default: ShoppingView()
+            case 3: ShoppingView()
+            default: HistoryList(categories: Category.nutrition)
             }
         }
     }
@@ -62,7 +65,7 @@ struct MacrosView: View {
                     )
                 }
 
-                Button {
+                HButton(haptic: Haptics.medium) {
                     showAdd = true
                 } label: {
                     Label("Añadir comida", systemImage: "plus")
@@ -181,6 +184,7 @@ struct AddFoodSheet: View {
                                 kcal: Double(kcal) ?? 0,
                                 protein: Double(protein.replacingOccurrences(of: ",", with: ".")) ?? 0
                             )
+                            Haptics.success()
                             await onDone()
                             dismiss()
                         }
@@ -276,6 +280,7 @@ struct MealRow: View {
             if canLog {
                 Button {
                     Task {
+                        Haptics.light()
                         _ = try? await API.shared.dietLogMeal(dish)
                         onLogged(dish)
                     }
@@ -372,6 +377,7 @@ struct ShoppingView: View {
         let text = newItem.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         newItem = ""
+        Haptics.light()
         _ = try? await API.shared.shoppingAdd(text)
         await load()
     }

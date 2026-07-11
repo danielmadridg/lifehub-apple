@@ -20,6 +20,7 @@ struct GymView: View {
                 // Entreno a medias → continuar
                 if let active {
                     Button {
+                        Haptics.medium()
                         training = active
                     } label: {
                         HStack {
@@ -43,10 +44,12 @@ struct GymView: View {
                 SectionHeader(title: "Rutinas")
                 ForEach(routines) { routine in
                     RoutineCard(routine: routine) {
+                        Haptics.medium()
                         Task { await start(routine: routine) }
                     }
                 }
                 Button {
+                    Haptics.medium()
                     Task { await start(routine: nil) }
                 } label: {
                     Label("Entreno libre", systemImage: "plus")

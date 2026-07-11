@@ -41,6 +41,27 @@ extension View {
 
 enum Haptics {
     static func light() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
+    static func medium() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+    static func rigid() { UIImpactFeedbackGenerator(style: .rigid).impactOccurred() }
+    static func soft() { UIImpactFeedbackGenerator(style: .soft).impactOccurred() }
+    static func selection() { UISelectionFeedbackGenerator().selectionChanged() }
     static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
     static func warning() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+}
+
+/// Botón con háptico integrado — respuesta táctil consistente en toda la app.
+/// Sustituye a Button cuando quieres el "tic" sutil al pulsar.
+struct HButton<Label: View>: View {
+    var haptic: () -> Void = Haptics.light
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        Button {
+            haptic()
+            action()
+        } label: {
+            label()
+        }
+    }
 }

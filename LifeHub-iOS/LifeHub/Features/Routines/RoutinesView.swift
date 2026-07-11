@@ -11,6 +11,7 @@ struct RoutinesView: View {
                 Text("Historial").tag(1)
             }
             .pickerStyle(.segmented)
+            .onChange(of: tab) { _, _ in Haptics.selection() }
 
             if tab == 0 {
                 TodayList(categories: Category.routine)

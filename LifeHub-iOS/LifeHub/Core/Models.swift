@@ -158,7 +158,12 @@ struct GymRoutine: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
     let today: Bool?
+    let group: String?   // "normal" | "verano"
     let exercises: [GymRoutineExercise]
+}
+
+struct RoutineModeResponse: Codable {
+    let mode: String     // "normal" | "summer"
 }
 
 struct GymSet: Codable, Identifiable, Hashable {
@@ -403,6 +408,10 @@ struct AIText: Codable {
 
 struct StatusResponse: Codable {
     let status: String
+}
+
+struct GoogleURLResponse: Codable {
+    let url: String
 }
 
 struct AuthStatus: Codable {

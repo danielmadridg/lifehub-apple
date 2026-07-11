@@ -67,6 +67,7 @@ struct FinanceView: View {
                 Text("Bitvavo").tag(1)
             }
             .pickerStyle(.segmented)
+            .onChange(of: tab) { _, _ in Haptics.selection() }
 
             if tab == 0 {
                 PortfolioSection { try await API.shared.financeAlpaca() }
