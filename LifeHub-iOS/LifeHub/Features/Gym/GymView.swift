@@ -30,6 +30,12 @@ struct GymView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .secondaryGlass()
+                    NavigationLink { PRView() } label: {
+                        Label("PR", systemImage: "trophy")
+                            .font(Theme.dCaption.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .secondaryGlass()
                     NavigationLink { GymHealthView() } label: {
                         Label("Salud", systemImage: "heart.fill")
                             .font(Theme.dCaption.weight(.semibold))

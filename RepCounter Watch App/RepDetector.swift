@@ -117,7 +117,11 @@ final class RepDetector: ObservableObject {
 
         detectShake(d, t: t)
 
-        guard counting, !manual else { return }
+        guard counting else { return }
+        // Pierna (máquina): la muñeca no se traslada, así que cada repe se marca
+        // con un TOQUE seco (mano en el muslo o flick de muñeca) → pico de
+        // aceleración claro, por encima del ruido de estar quieto.
+        if manual { detectTap(d, t: t); return }
 
         if setStartT < 0 { setStartT = t }
         let elapsed = t - setStartT
@@ -168,6 +172,20 @@ final class RepDetector: ObservableObject {
                 lastRep = t; seenPos = false; seenNeg = false
                 DispatchQueue.main.async { self.reps += 1; WKInterfaceDevice.current().play(.notification) }
             } else { seenPos = false; seenNeg = false }
+        }
+    }
+
+    private var lastTapT: TimeInterval = 0
+    /// Cuenta un toque/impulso seco por repe (ejercicios de pierna en máquina).
+    private func detectTap(_ d: CMDeviceMotion, t: TimeInterval) {
+        let a = d.userAcceleration
+        let acc = (a.x * a.x + a.y * a.y + a.z * a.z).squareRoot()
+        if acc > 0.85, t - lastTapT > 0.45 {
+            lastTapT = t
+            DispatchQueue.main.async {
+                self.reps += 1
+                WKInterfaceDevice.current().play(.notification)
+            }
         }
     }
 

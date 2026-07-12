@@ -16,6 +16,7 @@
 		2C8F72A93A1E6AF101957AA3 /* LifeHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369926010C3173D2CCEC448C /* LifeHubApp.swift */; };
 		303EE4B1F266DA3553374572 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886756A0D1AC6D7310215C16 /* AppLinks.swift */; };
 		306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */; };
+		32683A0EBE7AA76C3C949390 /* PRView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE81D0A85BD248A4698F972 /* PRView.swift */; };
 		34FA71130DEF3A3135E35099 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760FFCF2C87B885444011A11 /* APIClient.swift */; };
 		49AC3E4F2F95D7A0AE303134 /* StudiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460480BDE0779A2DC333C487 /* StudiesView.swift */; };
 		49FF2A953E67B7EDD034BB88 /* DMSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4531FF2A146305E6A00BFF73 /* DMSans-SemiBold.ttf */; };
@@ -59,6 +60,7 @@
 		32D78C1E9329F151B1056927 /* GymView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymView.swift; sourceTree = "<group>"; };
 		35E59ADB0C674A664536FDA5 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		369926010C3173D2CCEC448C /* LifeHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeHubApp.swift; sourceTree = "<group>"; };
+		3AE81D0A85BD248A4698F972 /* PRView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRView.swift; sourceTree = "<group>"; };
 		3F3850097190054ED7E82A96 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4531FF2A146305E6A00BFF73 /* DMSans-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		45DD10A054DCBB9A91550710 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
@@ -159,6 +161,7 @@
 				AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */,
 				7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */,
 				32D78C1E9329F151B1056927 /* GymView.swift */,
+				3AE81D0A85BD248A4698F972 /* PRView.swift */,
 				7E84AF113B98EE123B0887BC /* RoutineManagerView.swift */,
 			);
 			path = Gym;
@@ -333,6 +336,7 @@
 				BFC5FF771B123691916B5B77 /* Models.swift in Sources */,
 				8BCC803A92DC9B466825B90E /* Notifications.swift in Sources */,
 				0F3B69CA4693579391FC9142 /* NutritionView.swift in Sources */,
+				32683A0EBE7AA76C3C949390 /* PRView.swift in Sources */,
 				E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */,
 				9BB8A9655A4E5B542A73A00F /* RoutineManagerView.swift in Sources */,
 				306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */,

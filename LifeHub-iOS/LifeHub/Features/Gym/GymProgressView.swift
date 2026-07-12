@@ -1,11 +1,18 @@
 import SwiftUI
 import Charts
 
+/// Referencia mínima a un ejercicio de tus rutinas.
+struct ExRef: Identifiable, Hashable {
+    let id: Int
+    let name: String
+    let muscle: String
+}
+
 /// Progreso por ejercicio: 1RM estimado y peso top por sesión, PRs y
-/// recomendación actual.
+/// recomendación actual. Solo lista los ejercicios de TUS rutinas.
 struct GymProgressView: View {
-    @State private var exercises: [GymExercise] = []
-    @State private var selected: GymExercise?
+    @State private var exercises: [ExRef] = []
+    @State private var selected: ExRef?
     @State private var progress: GymProgress?
     @State private var error: String?
 
@@ -98,14 +105,24 @@ struct GymProgressView: View {
 
     func loadExercises() async {
         do {
-            exercises = try await API.shared.gymExercises()
+            // Solo los ejercicios que aparecen en tus rutinas (sin duplicados).
+            let routines = try await API.shared.gymRoutines()
+            var seen = Set<Int>()
+            var out: [ExRef] = []
+            for r in routines {
+                for e in r.exercises where !seen.contains(e.exercise_id) {
+                    seen.insert(e.exercise_id)
+                    out.append(ExRef(id: e.exercise_id, name: e.name, muscle: e.muscle))
+                }
+            }
+            exercises = out.sorted { $0.muscle == $1.muscle ? $0.name < $1.name : $0.muscle < $1.muscle }
             error = nil
         } catch {
             self.error = error.localizedDescription
         }
     }
 
-    func loadProgress(_ ex: GymExercise) async {
+    func loadProgress(_ ex: ExRef) async {
         progress = nil
         progress = try? await API.shared.gymProgress(ex.id)
     }
