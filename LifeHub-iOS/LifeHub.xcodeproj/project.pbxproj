@@ -29,6 +29,7 @@
 		6116ED645341C3ADD48C4EFB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E59ADB0C674A664536FDA5 /* Theme.swift */; };
 		6F4031C781A0DBC7828BD2B0 /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0AB4EBFC07C97CDD17E8BD2E /* DMSans-Medium.ttf */; };
 		7DEE19E76C58D32ACA3F709D /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569D4529F774C1CED3E7AAD1 /* SleepView.swift */; };
+		861567F3F8FED551DB5F3A68 /* Me.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9595279D6D2FB5739C65A80 /* Me.swift */; };
 		8B736AEE1AB6B89C250AF182 /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D9A57AA2B51B68B09303A4B /* DMSans-Regular.ttf */; };
 		8BCC803A92DC9B466825B90E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = F423D3B16C70AA07A87DF0DD /* Notifications.swift */; };
 		90EC993FE0D97724085C2908 /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941F31B5D8CB075E85DA95B5 /* FinanceView.swift */; };
@@ -104,7 +105,7 @@
 		4A9783752564D0D87AD097B2 /* GymOverallProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymOverallProgressView.swift; sourceTree = "<group>"; };
 		4BB8205FC32F67B6460CA4B0 /* Fraunces-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-SemiBold.ttf"; sourceTree = "<group>"; };
 		4D9A57AA2B51B68B09303A4B /* DMSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-Regular.ttf"; sourceTree = "<group>"; };
-		4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LifeHubWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LifeHubWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		569D4529F774C1CED3E7AAD1 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
 		6B998A2483F0418307D1CBB6 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		760FFCF2C87B885444011A11 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -115,7 +116,7 @@
 		9371C93EB9B366D0D65AC57F /* Fraunces-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Regular.ttf"; sourceTree = "<group>"; };
 		941F31B5D8CB075E85DA95B5 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
 		AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymProgressView.swift; sourceTree = "<group>"; };
-		D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LifeHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LifeHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D77F2637A1D4672AAC983F79 /* Season.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Season.swift; sourceTree = "<group>"; };
 		DC387C6E226BB71939872794 /* SleepHealth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHealth.swift; sourceTree = "<group>"; };
 		E0E7D68B0AF5FEA4D0916B1F /* NutritionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionView.swift; sourceTree = "<group>"; };
@@ -354,8 +355,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 14B2C1D6FC8E9CBA3411BECB /* Build configuration list for PBXProject "LifeHub" */;
 			developmentRegion = en;
@@ -441,6 +440,7 @@
 				F798AA46F027FCCD691F76B1 /* APIClient.swift in Sources */,
 				97BD496462EE0E7D214B0EC1 /* Endpoints.swift in Sources */,
 				28508D4DD1CE558BB027036D /* LifeHubWidgets.swift in Sources */,
+				861567F3F8FED551DB5F3A68 /* Me.swift in Sources */,
 				A815915528A07E735B66A89C /* Models.swift in Sources */,
 				D4AE2B30DAAB5B428F5ACB3F /* Theme.swift in Sources */,
 			);
@@ -583,6 +583,7 @@
 				CODE_SIGN_ENTITLEMENTS = LifeHub/LifeHub.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHub/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -602,6 +603,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHubWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -620,6 +622,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHubWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -641,6 +644,7 @@
 				CODE_SIGN_ENTITLEMENTS = LifeHub/LifeHub.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5ZN9UM837Q;
 				INFOPLIST_FILE = LifeHub/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

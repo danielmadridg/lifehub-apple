@@ -5,6 +5,15 @@ options:
   deploymentTarget:
     iOS: "17.0"
 packages: {}
+schemes:
+  LifeHub:
+    build:
+      targets:
+        LifeHub: all
+    run:
+      config: Debug
+    archive:
+      config: Release
 targets:
   LifeHub:
     type: application
@@ -60,6 +69,7 @@ targets:
       - LifeHub/Core/Endpoints.swift
       - LifeHub/Core/Models.swift
       - LifeHub/Core/Theme.swift
+      - LifeHub/Core/Me.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.daniel.lifehub.widgets

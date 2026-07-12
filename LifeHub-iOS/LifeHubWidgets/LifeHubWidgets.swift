@@ -61,25 +61,75 @@ struct HabitCheckRow: View {
     }
 }
 
-// ── Widget de Comidas ────────────────────────────────────────────────────────
-struct MealsView: View {
-    let entry: HabitsEntry
-    var meals: [Habit] {
+// ── Widget de Comidas (macros + checklist) ───────────────────────────────────
+struct MealsEntry: TimelineEntry {
+    let date: Date
+    let meals: [Habit]
+    let kcal: Double, kcalTarget: Double
+    let protein: Double, proteinTarget: Double
+}
+
+struct MealsProvider: TimelineProvider {
+    func placeholder(in c: Context) -> MealsEntry { MealsEntry(date: .now, meals: [], kcal: 0, kcalTarget: 2500, protein: 0, proteinTarget: 150) }
+    func getSnapshot(in c: Context, completion: @escaping (MealsEntry) -> Void) { Task { completion(await fetch()) } }
+    func getTimeline(in c: Context, completion: @escaping (Timeline<MealsEntry>) -> Void) {
+        Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(900)))) }
+    }
+    func fetch() async -> MealsEntry {
+        async let h = try? API.shared.today()
+        async let f = try? API.shared.foodDay()
+        async let bw = try? API.shared.gymBodyweight()
         let order = ["desayuno", "comida", "almuerzo", "merienda", "cena"]
-        return entry.habits.filter { $0.category == .diet }
+        let meals = ((await h) ?? []).filter { $0.category == .diet }
             .sorted { a, b in
                 (order.firstIndex { a.name.lowercased().contains($0) } ?? 9)
                     < (order.firstIndex { b.name.lowercased().contains($0) } ?? 9)
             }
+        let food = await f
+        let weight = (await bw)?.first?.weight ?? Me.fallbackWeight
+        return MealsEntry(date: .now, meals: meals,
+                          kcal: food?.total_kcal ?? 0, kcalTarget: Double(Me.kcalTarget(weight: weight)),
+                          protein: food?.total_protein ?? 0, proteinTarget: Me.proteinTarget(weight: weight))
     }
+}
+
+struct MacroBar: View {
+    let label: String, value: Double, target: Double, unit: String, tint: Color
+    var pct: Double { target > 0 ? min(value / target, 1) : 0 }
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label("Comidas", systemImage: "fork.knife")
-                .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
-            if meals.isEmpty {
-                Text("Sin datos").font(.caption).foregroundStyle(Theme.muted)
-            } else {
-                ForEach(meals.prefix(4)) { HabitCheckRow(habit: $0) }
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(label).font(.caption2).foregroundStyle(Theme.muted)
+                Spacer()
+                Text("\(Int(value))/\(Int(target)) \(unit)").font(.caption2.monospacedDigit()).foregroundStyle(Theme.muted)
+            }
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.surface2)
+                    Capsule().fill(tint).frame(width: g.size.width * pct)
+                }
+            }
+            .frame(height: 5)
+        }
+    }
+}
+
+struct MealsView: View {
+    let entry: MealsEntry
+    @Environment(\.widgetFamily) private var family
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Label("Comida", systemImage: "fork.knife")
+                    .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
+                Spacer()
+                Text("\(entry.meals.filter(\.done_today).count)/\(entry.meals.count)")
+                    .font(.caption2.weight(.bold)).foregroundStyle(Theme.muted)
+            }
+            MacroBar(label: "Calorías", value: entry.kcal, target: entry.kcalTarget, unit: "kcal", tint: Theme.accent)
+            MacroBar(label: "Proteína", value: entry.protein, target: entry.proteinTarget, unit: "g", tint: Theme.accent2)
+            if family != .systemSmall {
+                ForEach(entry.meals.prefix(4)) { HabitCheckRow(habit: $0) }
             }
             Spacer(minLength: 0)
         }
@@ -88,11 +138,11 @@ struct MealsView: View {
 
 struct MealsWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "MealsWidget", provider: HabitsProvider()) { entry in
+        StaticConfiguration(kind: "MealsWidget", provider: MealsProvider()) { entry in
             MealsView(entry: entry).containerBackground(Theme.bg, for: .widget)
         }
         .configurationDisplayName("Comidas")
-        .description("Marca tus comidas del día sin abrir la app.")
+        .description("Macros del día y marca tus comidas sin abrir la app.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -100,18 +150,21 @@ struct MealsWidget: Widget {
 // ── Widget de Rutinas ────────────────────────────────────────────────────────
 struct RoutinesView: View {
     let entry: HabitsEntry
-    var routines: [Habit] {
-        entry.habits.filter { Category.routine.contains($0.category) && $0.due_today }
-            .sorted { !$0.done_today && $1.done_today }
-    }
+    var all: [Habit] { entry.habits.filter { Category.routine.contains($0.category) } }
+    var pending: [Habit] { all.filter { $0.due_today && !$0.done_today } }
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label("Pendiente hoy", systemImage: "checklist")
-                .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
-            if routines.isEmpty {
-                Text("Todo hecho").font(.caption).foregroundStyle(Theme.muted)
+            HStack {
+                Label("Rutinas", systemImage: "checklist")
+                    .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
+                Spacer()
+                Text("\(all.filter(\.done_today).count)/\(all.count)")
+                    .font(.caption2.weight(.bold)).foregroundStyle(Theme.muted)
+            }
+            if pending.isEmpty {
+                Text("Todo hecho por hoy ✓").font(.caption).foregroundStyle(Theme.good)
             } else {
-                ForEach(routines.prefix(5)) { HabitCheckRow(habit: $0) }
+                ForEach(pending.prefix(5)) { HabitCheckRow(habit: $0) }
             }
             Spacer(minLength: 0)
         }
