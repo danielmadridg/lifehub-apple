@@ -284,7 +284,8 @@ final class RepDetector: ObservableObject {
         let d = UserDefaults.standard
         let amp = d.double(forKey: "cal_amp_\(exerciseId)")
         let per = d.double(forKey: "cal_per_\(exerciseId)")
-        loadedFloor = amp > 0 ? max(0.03, 0.35 * amp) : profile.floor
+        let f = d.double(forKey: "cal_floor_\(exerciseId)")   // aprendido de tus +/−
+        loadedFloor = f > 0 ? f : (amp > 0 ? max(0.03, 0.35 * amp) : profile.floor)
         loadedMinGap = per > 0 ? min(2.5, max(0.5, 0.55 * per)) : 0.6
     }
 
@@ -304,5 +305,11 @@ final class RepDetector: ObservableObject {
     func adjust(_ delta: Int) {
         reps = max(0, reps + delta)
         if delta > 0 { WKInterfaceDevice.current().play(.click) }
+        // Aprende de tu corrección: "+" (nos faltaban) baja el suelo de detección
+        // de este ejercicio; "−" (contamos de más) lo sube. Persiste por ejercicio
+        // y afecta ya al recuento offline de esta misma serie.
+        guard profile.mode == .auto, exerciseId != 0, delta != 0 else { return }
+        loadedFloor = delta > 0 ? max(0.02, loadedFloor * 0.88) : min(0.5, loadedFloor * 1.12)
+        UserDefaults.standard.set(loadedFloor, forKey: "cal_floor_\(exerciseId)")
     }
 }
