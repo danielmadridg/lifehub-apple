@@ -26,12 +26,21 @@ enum BedtimeEngine {
         return wake
     }
 
+    /// Hora de dormir alineada a CICLOS de sueño (~90 min) para despertar al
+    /// final de un ciclo (fase ligera). bedtime = wake − latencia − N·ciclo.
+    static let cycle: TimeInterval = 90 * 60
+    static let latency: TimeInterval = 15 * 60
+
+    static func cyclesFor(need: TimeInterval, recovery: TimeInterval) -> Int {
+        max(4, min(6, Int(((need + recovery) / cycle).rounded())))
+    }
+
     static func recommendedBedtime() async -> Date {
         let wake = await recommendedWake()
         let need = UserDefaults.standard.double(forKey: "sleep_need_secs")
         let recovery = UserDefaults.standard.double(forKey: "sleep_recovery_secs")
-        let n = need > 0 ? need : 8 * 3600
-        return wake.addingTimeInterval(-(n + recovery + 15 * 60))
+        let n = cyclesFor(need: need > 0 ? need : 8 * 3600, recovery: recovery)
+        return wake.addingTimeInterval(-(latency + Double(n) * cycle))
     }
 }
 

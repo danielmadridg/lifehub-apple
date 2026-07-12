@@ -474,12 +474,27 @@ struct CreatineWidget: Widget {
 
 struct MealsLockView: View {
     let entry: MealsEntry
+    @Environment(\.widgetFamily) private var family
     var next: Habit? { entry.meals.first { !$0.done_today } }
     var done: Int { entry.meals.filter(\.done_today).count }
+    var total: Int { max(entry.meals.count, 1) }
+    var toggleNext: ToggleHabitIntent {
+        ToggleHabitIntent(id: next?.id ?? 0, done: false, dish: next.flatMap { entry.dishes[$0.id] } ?? "")
+    }
     var body: some View {
-        if let n = next {
+        if family == .accessoryCircular {
+            Button(intent: toggleNext) {
+                Gauge(value: Double(done), in: 0...Double(total)) {
+                    Image(systemName: "fork.knife")
+                } currentValueLabel: {
+                    Text("\(done)")
+                }
+                .gaugeStyle(.accessoryCircular)
+            }
+            .buttonStyle(.plain)
+        } else if let n = next {
             HStack(spacing: 8) {
-                Button(intent: ToggleHabitIntent(id: n.id, done: false, dish: entry.dishes[n.id] ?? "")) {
+                Button(intent: toggleNext) {
                     Image(systemName: "circle").font(.title3)
                 }.buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 0) {
@@ -500,8 +515,8 @@ struct MealsLockWidget: Widget {
             MealsLockView(entry: entry)
         }
         .configurationDisplayName("Comida (bloqueo)")
-        .description("Marca la siguiente comida desde la pantalla de bloqueo.")
-        .supportedFamilies([.accessoryRectangular])
+        .description("Marca comidas desde la pantalla de bloqueo.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular])
     }
 }
 

@@ -171,7 +171,7 @@ struct HistoryList: View {
     var body: some View {
         LoadView {
             let all = try await API.shared.habits()
-            let mine = all.filter { categories.contains($0.category) }
+            let mine = all.filter { categories.contains($0.category) && $0.active }
             var out: [HabitHistoryRow] = []
             for h in mine {
                 let logs = (try? await API.shared.habitHistory(h.id, days: 28)) ?? []

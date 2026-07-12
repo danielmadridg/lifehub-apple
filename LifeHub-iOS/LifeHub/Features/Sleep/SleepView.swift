@@ -86,26 +86,29 @@ struct SleepView: View {
 
     var bedtimePlan: BedtimePlan? {
         let need: TimeInterval = 8 * 3600
-        // Deuda de sueño de las últimas noches (máx 45 min de recuperación).
+        // Deuda de sueño de las últimas noches (máx 1 ciclo de recuperación).
         let recent = sleep.history.suffix(5)
         let debt = recent.reduce(0.0) { $0 + max(0, need - $1.asleep) }
-        let recovery = min(debt * 0.4, 45 * 60)
-        let latency: TimeInterval = 15 * 60
+        let recovery = min(debt * 0.4, BedtimeEngine.cycle)
 
         // Despertar: antes del primer evento de mañana (con 45 min de margen),
-        // o 08:00 por defecto.
+        // o 08:00 por defecto. La alarma cae al FINAL de un ciclo (fase ligera).
         let cal = Calendar.current
         let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
         var wake = cal.date(bySettingHour: 8, minute: 0, second: 0, of: tomorrow)!
-        var reasonEvent = "despertar a las 08:00"
+        var reasonEvent = "despertar 08:00"
         if let ev = tomorrowFirst, let start = Fmt.date(ev.start), hasTime(ev.start) {
             let candidate = start.addingTimeInterval(-45 * 60)
             if candidate < wake { wake = candidate; reasonEvent = "listo para «\(ev.title)»" }
         }
-        let bedtime = wake.addingTimeInterval(-(need + recovery + latency))
-        let recTxt = recovery > 60 ? " +\(Int(recovery/60)) min de recuperación" : ""
+        let n = BedtimeEngine.cyclesFor(need: need, recovery: recovery)
+        let total = BedtimeEngine.latency + Double(n) * BedtimeEngine.cycle
+        let bedtime = wake.addingTimeInterval(-total)
+        let h = Int((Double(n) * BedtimeEngine.cycle) / 3600)
+        let m = Int((Double(n) * BedtimeEngine.cycle).truncatingRemainder(dividingBy: 3600) / 60)
+        let mm = m > 0 ? " \(m)min" : ""
         return BedtimePlan(bedtime: bedtime, alarm: wake,
-                           reason: "Objetivo 8 h\(recTxt) · \(reasonEvent)")
+                           reason: "\(n) ciclos (~\(h)h\(mm)) + 15 min para dormirte · \(reasonEvent)")
     }
 
     func firstEventTomorrow(_ events: [CalendarEvent]) -> CalendarEvent? {
