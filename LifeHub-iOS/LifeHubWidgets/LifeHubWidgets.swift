@@ -190,7 +190,9 @@ struct WorkoutProvider: TimelineProvider {
         let count = routines.first { $0.name == name }?.exercises.count ?? 0
         let workouts = ((await w) ?? []).sorted { $0.started_at > $1.started_at }
         var delta: Double?
-        if workouts.count >= 2 { delta = workouts[0].volume - workouts[1].volume }
+        if workouts.count >= 2, workouts[1].volume > 0 {
+            delta = (workouts[0].volume - workouts[1].volume) / workouts[1].volume * 100
+        }
         return WorkoutEntry(date: .now, name: name, count: count, deltaKg: delta)
     }
 }
@@ -212,7 +214,7 @@ struct WorkoutWidgetView: View {
             }
             Spacer(minLength: 0)
             if let d = entry.deltaKg {
-                Text(d >= 0 ? "▲ +\(Int(d)) kg vs anterior" : "▼ \(Int(d)) kg vs anterior")
+                Text(d >= 0 ? "▲ +\(Int(d.rounded()))% vs anterior" : "▼ \(Int(d.rounded()))% vs anterior")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(d >= 0 ? Theme.good : Theme.bad)
                     .lineLimit(1).minimumScaleFactor(0.8)
@@ -290,7 +292,7 @@ struct ClaudeWidget: Widget {
     }
 }
 
-// ── ESTUDIOS (grande): texto de la IA ────────────────────────────────────────
+// ── ESTUDIOS (mediano): mismo texto que la pestaña (studies summary) ─────────
 struct StudyEntry: TimelineEntry { let date: Date; let text: String }
 struct StudyProvider: TimelineProvider {
     func placeholder(in c: Context) -> StudyEntry { StudyEntry(date: .now, text: "…") }
@@ -299,21 +301,24 @@ struct StudyProvider: TimelineProvider {
         Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(3600)))) }
     }
     func fetch() async -> StudyEntry {
-        StudyEntry(date: .now, text: (try? await API.shared.aiStudies())?.text ?? "Sin novedades de estudios.")
+        // Mismo texto que muestra la pestaña Estudios (summary de /api/studies).
+        let s = try? await API.shared.studies()
+        var text = s?.summary
+        if (text ?? "").isEmpty { text = (try? await API.shared.aiStudies())?.text }
+        return StudyEntry(date: .now, text: (text ?? "").isEmpty ? "Sin novedades de estudios." : text!)
     }
 }
 
 struct StudyWidgetView: View {
     let entry: StudyEntry
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Label("Estudios", systemImage: "graduationcap")
-                .font(.system(size: 16, weight: .bold)).foregroundStyle(Theme.accent)
+                .font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.accent)
             Text(entry.text)
-                .font(.system(size: 17))
+                .font(.system(size: 14))
                 .foregroundStyle(Theme.ink)
-                .lineLimit(nil)
-                .minimumScaleFactor(0.9)
+                .minimumScaleFactor(0.85)
             Spacer(minLength: 0)
         }
     }
@@ -326,7 +331,68 @@ struct StudyWidget: Widget {
         }
         .configurationDisplayName("Estudios · IA")
         .description("El resumen de estudios que genera la IA.")
-        .supportedFamilies([.systemLarge])
+        .supportedFamilies([.systemMedium])
+    }
+}
+
+// ── AGENDA (pequeño): ¿algo hoy? ─────────────────────────────────────────────
+struct AgendaEntry: TimelineEntry { let date: Date; let events: [CalendarEvent] }
+struct AgendaProvider: TimelineProvider {
+    func placeholder(in c: Context) -> AgendaEntry { AgendaEntry(date: .now, events: []) }
+    func getSnapshot(in c: Context, completion: @escaping (AgendaEntry) -> Void) { Task { completion(await fetch()) } }
+    func getTimeline(in c: Context, completion: @escaping (Timeline<AgendaEntry>) -> Void) {
+        Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(1800)))) }
+    }
+    func fetch() async -> AgendaEntry {
+        let cal = Calendar.current
+        let all = (try? await API.shared.calendar())?.events ?? []
+        let today = all.filter { e in
+            guard let d = Fmt.date(e.start) else { return false }
+            return cal.isDateInToday(d)
+        }.sorted { (Fmt.date($0.start) ?? .distantFuture) < (Fmt.date($1.start) ?? .distantFuture) }
+        return AgendaEntry(date: .now, events: today)
+    }
+}
+
+struct AgendaWidgetView: View {
+    let entry: AgendaEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Agenda").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.accent)
+            if entry.events.isEmpty {
+                Spacer()
+                Text("Nada hoy").font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.ink)
+                Text("día libre").font(.system(size: 13)).foregroundStyle(Theme.muted)
+                Spacer()
+            } else {
+                Text("\(entry.events.count) \(entry.events.count == 1 ? "evento" : "eventos") hoy")
+                    .font(.system(size: 13)).foregroundStyle(Theme.muted)
+                ForEach(entry.events.prefix(3), id: \.self) { e in
+                    HStack(spacing: 6) {
+                        Text(time(e.start)).font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.accent)
+                            .frame(width: 44, alignment: .leading)
+                        Text(e.title).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.ink)
+                            .lineLimit(1).minimumScaleFactor(0.85)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+    func time(_ iso: String?) -> String {
+        guard let iso, iso.contains("T"), let d = Fmt.date(iso) else { return "todo" }
+        return d.formatted(.dateTime.hour().minute())
+    }
+}
+
+struct AgendaWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "AgendaWidget", provider: AgendaProvider()) { entry in
+            AgendaWidgetView(entry: entry).containerBackground(Theme.bg, for: .widget)
+        }
+        .configurationDisplayName("Agenda")
+        .description("Si tienes algo hoy.")
+        .supportedFamilies([.systemSmall])
     }
 }
 
@@ -338,6 +404,7 @@ struct LifeHubWidgetBundle: WidgetBundle {
         RoutinesWidget()
         WorkoutWidget()
         ClaudeWidget()
+        AgendaWidget()
         StudyWidget()
     }
 }
