@@ -8,6 +8,8 @@ struct SettingsView: View {
                 .font(Theme.dSubheadline)
                 .foregroundStyle(Theme.muted)
 
+            SettingsLink(icon: "square.grid.2x2", title: "Barra de navegación",
+                         hint: "Elige qué apps van en la barra inferior") { NavbarSettingsView() }
             SettingsLink(icon: "dumbbell", title: "Rutinas de gym",
                          hint: "Crear y editar rutinas y ejercicios") { RoutineManagerView() }
             SettingsLink(icon: "checklist.unchecked", title: "Hábitos y comidas",
@@ -58,6 +60,77 @@ struct SettingsLink<Destination: View>: View {
 struct ShoppingScreen: View {
     var body: some View {
         Screen(title: "Compra") { ShoppingView() }
+    }
+}
+
+// ── Barra de navegación configurable ─────────────────────────────────────────
+
+struct NavbarSettingsView: View {
+    @AppStorage("nav_slots") private var slotsRaw = "gym,nutrition,finance,more"
+
+    var slots: [NavModule] {
+        let m = slotsRaw.split(separator: ",").compactMap { NavModule(rawValue: String($0)) }
+        return m.count == 4 ? m : RootView.defaultSlots
+    }
+
+    var body: some View {
+        Screen(title: "Barra de navegación") {
+            Text("Elige qué apps van en la barra inferior. \"Hoy\" queda fija en el centro y la app abre siempre ahí.")
+                .font(Theme.dSubheadline)
+                .foregroundStyle(Theme.muted)
+
+            slotRow(0, "Izquierda ·1")
+            slotRow(1, "Izquierda ·2")
+            HStack(spacing: 12) {
+                Image(systemName: "house")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundStyle(Theme.accent)
+                Text("Hoy")
+                    .font(Theme.dHeadline)
+                    .foregroundStyle(Theme.ink)
+                Spacer()
+                Text("centro · fija")
+                    .font(Theme.dCaption)
+                    .foregroundStyle(Theme.muted)
+            }
+            .card()
+            slotRow(2, "Derecha ·1")
+            slotRow(3, "Derecha ·2")
+        }
+    }
+
+    @ViewBuilder
+    func slotRow(_ i: Int, _ label: String) -> some View {
+        HStack {
+            Text(label)
+                .font(Theme.dCaption)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.muted)
+            Spacer()
+            Menu {
+                ForEach(NavModule.allCases) { m in
+                    Button { setSlot(i, m) } label: { Label(m.label, systemImage: m.icon) }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: slots[i].icon).font(.system(size: 16, weight: .light))
+                    Text(slots[i].label).font(Theme.dHeadline)
+                    Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                }
+                .foregroundStyle(Theme.accent)
+            }
+        }
+        .card()
+    }
+
+    /// Asigna el módulo al hueco i; si ya estaba en otro hueco, los intercambia
+    /// (así los 4 siempre son distintos).
+    func setSlot(_ i: Int, _ m: NavModule) {
+        var s = slots
+        if let j = s.firstIndex(of: m), j != i { s[j] = s[i] }
+        s[i] = m
+        slotsRaw = s.map(\.rawValue).joined(separator: ",")
+        Haptics.selection()
     }
 }
 

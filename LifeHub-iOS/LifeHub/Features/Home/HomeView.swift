@@ -98,6 +98,15 @@ struct HomeView: View {
                          label: "rutinas hechas")
             }
         }
+        .overlay(alignment: .topTrailing) {
+            NavigationLink { SettingsView() } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundStyle(Theme.muted)
+                    .padding(10)
+            }
+            .simultaneousGesture(TapGesture().onEnded { Haptics.light() })
+        }
         .task { await load() }
     }
 

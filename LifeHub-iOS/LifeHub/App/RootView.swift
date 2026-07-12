@@ -1,51 +1,115 @@
 import SwiftUI
 
-/// Navegación principal: 4 pestañas de uso diario + "Más" (igual que la web).
+/// Módulos que pueden ir en la barra de navegación (todos menos "Hoy").
+enum NavModule: String, CaseIterable, Identifiable {
+    case gym, nutrition, finance, routines, tasks, mail, calendar, studies, more
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .gym: return "Gym"
+        case .nutrition: return "Comida"
+        case .finance: return "Dinero"
+        case .routines: return "Rutinas"
+        case .tasks: return "Tareas"
+        case .mail: return "Correo"
+        case .calendar: return "Agenda"
+        case .studies: return "Estudios"
+        case .more: return "Más"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .gym: return "dumbbell"
+        case .nutrition: return "fork.knife"
+        case .finance: return "eurosign.circle"
+        case .routines: return "checklist.unchecked"
+        case .tasks: return "checklist"
+        case .mail: return "envelope"
+        case .calendar: return "calendar"
+        case .studies: return "graduationcap"
+        case .more: return "square.grid.2x2"
+        }
+    }
+}
+
+/// Navegación principal: 4 huecos configurables + "Hoy" fija en el centro.
+/// La app abre en "Hoy". Los huecos se eligen en Ajustes → Barra de navegación.
 struct RootView: View {
-    @State private var tab = 0
+    @AppStorage("nav_slots") private var slotsRaw = "gym,nutrition,finance,more"
+    @State private var tab = "home"
+
+    static let defaultSlots: [NavModule] = [.gym, .nutrition, .finance, .more]
+
+    var slots: [NavModule] {
+        let mods = slotsRaw.split(separator: ",").compactMap { NavModule(rawValue: String($0)) }
+        return mods.count == 4 ? mods : Self.defaultSlots
+    }
+    /// Orden real de las pestañas para el gesto de deslizar (Hoy en el centro).
+    var orderedTags: [String] {
+        [slots[0].rawValue, slots[1].rawValue, "home", slots[2].rawValue, slots[3].rawValue]
+    }
 
     var body: some View {
         TabView(selection: $tab) {
+            moduleTab(slots[0])
+            moduleTab(slots[1])
             NavigationStack { HomeView() }
                 .tabItem { Label("Hoy", systemImage: "house") }
-                .tag(0)
-
-            NavigationStack { GymView() }
-                .tabItem { Label("Gym", systemImage: "dumbbell") }
-                .tag(1)
-
-            NavigationStack { NutritionView() }
-                .tabItem { Label("Comida", systemImage: "fork.knife") }
-                .tag(2)
-
-            NavigationStack { FinanceView() }
-                .tabItem { Label("Dinero", systemImage: "eurosign.circle") }
-                .tag(3)
-
-            NavigationStack { MoreView() }
-                .tabItem { Label("Más", systemImage: "square.grid.2x2") }
-                .tag(4)
+                .tag("home")
+            moduleTab(slots[2])
+            moduleTab(slots[3])
         }
         .background(Theme.bg)
         .font(.sans(17))
         .onChange(of: tab) { _, _ in Haptics.selection() }
+        .onChange(of: slotsRaw) { _, _ in
+            if !orderedTags.contains(tab) { tab = "home" }
+        }
         .gesture(
-            // Deslizar horizontalmente también cambia de pestaña (además de la
-            // barra). Solo cuenta si el gesto es claramente horizontal.
             DragGesture(minimumDistance: 24)
                 .onEnded { value in
                     let dx = value.translation.width, dy = value.translation.height
-                    guard abs(dx) > 60, abs(dx) > abs(dy) * 1.8 else { return }
-                    if dx < 0 { tab = min(tab + 1, 4) } else { tab = max(tab - 1, 0) }
+                    guard abs(dx) > 60, abs(dx) > abs(dy) * 1.8,
+                          let i = orderedTags.firstIndex(of: tab) else { return }
+                    let j = dx < 0 ? min(i + 1, orderedTags.count - 1) : max(i - 1, 0)
+                    tab = orderedTags[j]
                 }
         )
     }
+
+    @ViewBuilder
+    private func moduleTab(_ m: NavModule) -> some View {
+        NavigationStack { destination(m) }
+            .tabItem { Label(m.label, systemImage: m.icon) }
+            .tag(m.rawValue)
+    }
+
+    @ViewBuilder
+    private func destination(_ m: NavModule) -> some View {
+        switch m {
+        case .gym: GymView()
+        case .nutrition: NutritionView()
+        case .finance: FinanceView()
+        case .routines: RoutinesView()
+        case .tasks: TasksView()
+        case .mail: MailView()
+        case .calendar: CalendarView()
+        case .studies: StudiesView()
+        case .more: MoreView()
+        }
+    }
 }
 
+/// "Más": índice completo de todos los módulos + Ajustes (así todo es accesible
+/// aunque no esté fijado en la barra).
 struct MoreView: View {
     var body: some View {
         Screen(title: "Más") {
             VStack(spacing: 10) {
+                MoreLink(icon: "dumbbell", label: "Gym") { GymView() }
+                MoreLink(icon: "fork.knife", label: "Comida") { NutritionView() }
+                MoreLink(icon: "eurosign.circle", label: "Dinero") { FinanceView() }
                 MoreLink(icon: "checklist.unchecked", label: "Rutinas") { RoutinesView() }
                 MoreLink(icon: "checklist", label: "Tareas") { TasksView() }
                 MoreLink(icon: "envelope", label: "Correo") { MailView() }
