@@ -70,6 +70,8 @@ targets:
       - LifeHub/Core/Models.swift
       - LifeHub/Core/Theme.swift
       - LifeHub/Core/Me.swift
+      - LifeHub/Core/Season.swift
+      - LifeHub/Core/Components.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.daniel.lifehub.widgets

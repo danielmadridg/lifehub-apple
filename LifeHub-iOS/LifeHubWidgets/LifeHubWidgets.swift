@@ -232,6 +232,129 @@ struct StudyWidget: Widget {
     }
 }
 
+// ── Widget de Próximo entreno ────────────────────────────────────────────────
+struct WorkoutEntry: TimelineEntry {
+    let date: Date
+    let name: String?
+    let count: Int
+}
+
+struct WorkoutProvider: TimelineProvider {
+    func placeholder(in c: Context) -> WorkoutEntry { WorkoutEntry(date: .now, name: nil, count: 0) }
+    func getSnapshot(in c: Context, completion: @escaping (WorkoutEntry) -> Void) { Task { completion(await fetch()) } }
+    func getTimeline(in c: Context, completion: @escaping (Timeline<WorkoutEntry>) -> Void) {
+        Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(3600)))) }
+    }
+    func fetch() async -> WorkoutEntry {
+        let routines = (try? await API.shared.gymRoutines()) ?? []
+        let name = Season.isSummer ? Season.todaySummerRoutine : routines.first { $0.today == true }?.name
+        let r = routines.first { $0.name == name }
+        return WorkoutEntry(date: .now, name: r?.name, count: r?.exercises.count ?? 0)
+    }
+}
+
+struct WorkoutView: View {
+    let entry: WorkoutEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Gimnasio", systemImage: "dumbbell")
+                .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
+            Spacer(minLength: 0)
+            if let name = entry.name {
+                Text("Hoy toca").font(.caption2).foregroundStyle(Theme.muted)
+                Text(name).font(.headline).foregroundStyle(Theme.ink).lineLimit(2).minimumScaleFactor(0.8)
+                Text("\(entry.count) ejercicios").font(.caption).foregroundStyle(Theme.muted)
+            } else {
+                Text("Descanso").font(.headline).foregroundStyle(Theme.ink)
+                Text("Hoy no toca entreno").font(.caption).foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+struct WorkoutWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "WorkoutWidget", provider: WorkoutProvider()) { entry in
+            WorkoutView(entry: entry).containerBackground(Theme.bg, for: .widget)
+        }
+        .configurationDisplayName("Entreno de hoy")
+        .description("Qué toca hoy en el gimnasio.")
+        .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
+// ── Widget de Uso de Claude ──────────────────────────────────────────────────
+struct ClaudeEntry: TimelineEntry {
+    let date: Date
+    let usage: ClaudeUsage?
+}
+
+struct ClaudeProvider: TimelineProvider {
+    func placeholder(in c: Context) -> ClaudeEntry { ClaudeEntry(date: .now, usage: nil) }
+    func getSnapshot(in c: Context, completion: @escaping (ClaudeEntry) -> Void) { Task { completion(await fetch()) } }
+    func getTimeline(in c: Context, completion: @escaping (Timeline<ClaudeEntry>) -> Void) {
+        Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(900)))) }
+    }
+    func fetch() async -> ClaudeEntry {
+        ClaudeEntry(date: .now, usage: try? await API.shared.claudeUsage())
+    }
+}
+
+struct ClaudeView: View {
+    let entry: ClaudeEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Claude", systemImage: "sparkles")
+                .font(.caption2.weight(.bold)).foregroundStyle(Theme.accent)
+            if let u = entry.usage {
+                row("Sesión", u.session)
+                row("Semanal", u.weekly)
+            } else {
+                Text("Sin datos").font(.caption).foregroundStyle(Theme.muted)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+    @ViewBuilder func row(_ label: String, _ w: ClaudeUsage.Window?) -> some View {
+        if let w {
+            HStack {
+                Text(label).font(.caption).foregroundStyle(Theme.muted)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(tokens(w.tokens)).font(.caption.weight(.semibold)).foregroundStyle(Theme.ink)
+                    if let c = countdown(w.reset) {
+                        Text(c).font(.caption2).foregroundStyle(Theme.accent)
+                    }
+                }
+            }
+        }
+    }
+    func tokens(_ n: Int) -> String {
+        n >= 1_000_000 ? String(format: "%.1fM", Double(n) / 1_000_000) : "\(n / 1000)K"
+    }
+    func countdown(_ iso: String?) -> String? {
+        guard let d = Fmt.date(iso) else { return nil }
+        let s = d.timeIntervalSinceNow
+        if s <= 0 { return "reinicio ya" }
+        let days = Int(s) / 86400, hours = (Int(s) % 86400) / 3600, mins = (Int(s) % 3600) / 60
+        if days > 0 { return "en \(days)d \(hours)h" }
+        if hours > 0 { return "en \(hours)h \(mins)m" }
+        return "en \(mins)m"
+    }
+}
+
+struct ClaudeWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "ClaudeWidget", provider: ClaudeProvider()) { entry in
+            ClaudeView(entry: entry).containerBackground(Theme.bg, for: .widget)
+        }
+        .configurationDisplayName("Uso de Claude")
+        .description("Uso de sesión y semanal + cuenta atrás.")
+        .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
 // ── Bundle ───────────────────────────────────────────────────────────────────
 @main
 struct LifeHubWidgetBundle: WidgetBundle {
@@ -239,5 +362,7 @@ struct LifeHubWidgetBundle: WidgetBundle {
         MealsWidget()
         RoutinesWidget()
         StudyWidget()
+        WorkoutWidget()
+        ClaudeWidget()
     }
 }
