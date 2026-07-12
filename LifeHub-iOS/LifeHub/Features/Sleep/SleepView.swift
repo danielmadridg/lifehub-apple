@@ -40,6 +40,12 @@ struct SleepView: View {
         if let cal = try? await API.shared.calendar() {
             tomorrowFirst = firstEventTomorrow(cal.events ?? [])
         }
+        // Guarda objetivo y recuperación para que el Atajo/alarma los use.
+        let need: TimeInterval = 8 * 3600
+        let recent = sleep.history.suffix(5)
+        let debt = recent.reduce(0.0) { $0 + max(0, need - $1.asleep) }
+        UserDefaults.standard.set(need, forKey: "sleep_need_secs")
+        UserDefaults.standard.set(min(debt * 0.4, 45 * 60), forKey: "sleep_recovery_secs")
     }
 
     // ── Recomendación ─────────────────────────────────────────────────────────
