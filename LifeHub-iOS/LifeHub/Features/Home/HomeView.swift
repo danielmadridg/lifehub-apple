@@ -99,8 +99,8 @@ struct HomeView: View {
             }
         }
         .overlay(alignment: .topTrailing) {
-            NavigationLink { SettingsView() } label: {
-                Image(systemName: "gearshape")
+            NavigationLink { MoreView() } label: {
+                Image(systemName: "square.grid.2x2")
                     .font(.system(size: 18, weight: .light))
                     .foregroundStyle(Theme.muted)
                     .padding(10)

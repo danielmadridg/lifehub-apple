@@ -5,6 +5,9 @@ enum NavModule: String, CaseIterable, Identifiable {
     case gym, nutrition, finance, routines, tasks, mail, calendar, studies, more
     var id: String { rawValue }
 
+    /// Opciones elegibles para la barra ("Más" ya no: vive en el engranaje de Hoy).
+    static var selectable: [NavModule] { allCases.filter { $0 != .more } }
+
     var label: String {
         switch self {
         case .gym: return "Gym"
@@ -36,14 +39,15 @@ enum NavModule: String, CaseIterable, Identifiable {
 /// Navegación principal: 4 huecos configurables + "Hoy" fija en el centro.
 /// La app abre en "Hoy". Los huecos se eligen en Ajustes → Barra de navegación.
 struct RootView: View {
-    @AppStorage("nav_slots") private var slotsRaw = "gym,nutrition,finance,more"
+    @AppStorage("nav_slots") private var slotsRaw = "gym,nutrition,finance,studies"
     @State private var tab = "home"
 
-    static let defaultSlots: [NavModule] = [.gym, .nutrition, .finance, .more]
+    static let defaultSlots: [NavModule] = [.gym, .nutrition, .finance, .studies]
 
     var slots: [NavModule] {
         let mods = slotsRaw.split(separator: ",").compactMap { NavModule(rawValue: String($0)) }
-        return mods.count == 4 ? mods : Self.defaultSlots
+        // "Más" ya no va en la barra (migración de configs antiguas) → default.
+        return (mods.count == 4 && !mods.contains(.more)) ? mods : Self.defaultSlots
     }
     /// Orden real de las pestañas para el gesto de deslizar (Hoy en el centro).
     var orderedTags: [String] {
@@ -55,7 +59,7 @@ struct RootView: View {
             moduleTab(slots[0])
             moduleTab(slots[1])
             NavigationStack { HomeView() }
-                .tabItem { Label("Hoy", systemImage: "house") }
+                .tabItem { Label("Hoy", systemImage: "house.fill") }
                 .tag("home")
             moduleTab(slots[2])
             moduleTab(slots[3])
@@ -66,11 +70,14 @@ struct RootView: View {
         .onChange(of: slotsRaw) { _, _ in
             if !orderedTags.contains(tab) { tab = "home" }
         }
-        .gesture(
-            DragGesture(minimumDistance: 24)
+        .simultaneousGesture(
+            // Deslizar horizontal cambia de pestaña. Umbral suave: basta con que
+            // el gesto sea más horizontal que vertical (así no hay que ser preciso),
+            // pero un scroll vertical (dy domina) nunca lo dispara.
+            DragGesture(minimumDistance: 12)
                 .onEnded { value in
                     let dx = value.translation.width, dy = value.translation.height
-                    guard abs(dx) > 60, abs(dx) > abs(dy) * 1.8,
+                    guard abs(dx) > 38, abs(dx) > abs(dy) * 1.2,
                           let i = orderedTags.firstIndex(of: tab) else { return }
                     let j = dx < 0 ? min(i + 1, orderedTags.count - 1) : max(i - 1, 0)
                     tab = orderedTags[j]

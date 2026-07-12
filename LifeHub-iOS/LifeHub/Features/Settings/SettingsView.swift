@@ -108,7 +108,7 @@ struct NavbarSettingsView: View {
                 .foregroundStyle(Theme.muted)
             Spacer()
             Menu {
-                ForEach(NavModule.allCases) { m in
+                ForEach(NavModule.selectable) { m in
                     Button { setSlot(i, m) } label: { Label(m.label, systemImage: m.icon) }
                 }
             } label: {
