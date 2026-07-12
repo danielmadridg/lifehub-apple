@@ -7,45 +7,34 @@ struct ToggleHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "Marcar hábito"
     @Parameter(title: "id") var id: Int
     @Parameter(title: "hecho") var done: Bool
+    @Parameter(title: "plato") var dish: String   // vacío si no es comida
     init() {}
-    init(id: Int, done: Bool) { self.id = id; self.done = done }
+    init(id: Int, done: Bool, dish: String = "") { self.id = id; self.done = done; self.dish = dish }
+
+    // Marca y (si es comida) registra el plato EN PARALELO, para que el check
+    // se pinte enseguida en vez de esperar varias llamadas en serie.
     func perform() async throws -> some IntentResult {
         if done {
             _ = try? await API.shared.undoDone(id)
-            // Si es una comida, quita también sus calorías del resumen.
-            if let dish = await Self.dishFor(id),
-               let food = try? await API.shared.foodDay(),
+            if !dish.isEmpty, let food = try? await API.shared.foodDay(),
                let item = food.items.last(where: { $0.name == dish }) {
                 _ = try? await API.shared.removeFood(item.id)
             }
         } else {
-            _ = try? await API.shared.markDone(id)
-            // Si es una comida, suma sus calorías al resumen (registra el plato).
-            if let dish = await Self.dishFor(id) { _ = try? await API.shared.dietLogMeal(dish) }
+            async let mark: Habit? = try? await API.shared.markDone(id)
+            async let log: FoodItem? = dish.isEmpty ? nil : (try? await API.shared.dietLogMeal(dish))
+            _ = await (mark, log)
         }
         return .result()
-    }
-
-    /// Plato de hoy que corresponde al hábito de comida (nil si no es comida).
-    static func dishFor(_ id: Int) async -> String? {
-        guard let habits = try? await API.shared.today(),
-              let h = habits.first(where: { $0.id == id }), h.category == .diet,
-              let plan = try? await API.shared.dietPlan(),
-              let day = plan.days.first(where: { $0.is_today }) else { return nil }
-        let n = h.name.lowercased()
-        if n.contains("desayuno") { return day.breakfast }
-        if n.contains("merienda") { return day.snack }
-        if n.contains("cena") { return day.dinner }
-        if n.contains("comida") || n.contains("almuerzo") { return day.lunch }
-        return nil
     }
 }
 
 struct HabitCheckRow: View {
     let habit: Habit
+    var dish: String = ""
     var body: some View {
         HStack(spacing: 8) {
-            Button(intent: ToggleHabitIntent(id: habit.id, done: habit.done_today)) {
+            Button(intent: ToggleHabitIntent(id: habit.id, done: habit.done_today, dish: dish)) {
                 Image(systemName: habit.done_today ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18))
                     .foregroundStyle(habit.done_today ? Theme.good : Theme.muted)
@@ -87,12 +76,13 @@ struct MacroBar: View {
 struct MealsEntry: TimelineEntry {
     let date: Date
     let meals: [Habit]
+    let dishes: [Int: String]
     let kcal: Double, kcalTarget: Double
     let protein: Double, proteinTarget: Double
 }
 
 struct MealsProvider: TimelineProvider {
-    func placeholder(in c: Context) -> MealsEntry { MealsEntry(date: .now, meals: [], kcal: 0, kcalTarget: 2500, protein: 0, proteinTarget: 150) }
+    func placeholder(in c: Context) -> MealsEntry { MealsEntry(date: .now, meals: [], dishes: [:], kcal: 0, kcalTarget: 2500, protein: 0, proteinTarget: 150) }
     func getSnapshot(in c: Context, completion: @escaping (MealsEntry) -> Void) { Task { completion(await fetch()) } }
     func getTimeline(in c: Context, completion: @escaping (Timeline<MealsEntry>) -> Void) {
         Task { completion(Timeline(entries: [await fetch()], policy: .after(Date().addingTimeInterval(900)))) }
@@ -101,15 +91,26 @@ struct MealsProvider: TimelineProvider {
         async let h = try? API.shared.today()
         async let f = try? API.shared.foodDay()
         async let bw = try? API.shared.gymBodyweight()
+        async let dp = try? API.shared.dietPlan()
         let order = ["desayuno", "comida", "almuerzo", "merienda", "cena"]
         let meals = ((await h) ?? []).filter { $0.category == .diet }
             .sorted { a, b in
                 (order.firstIndex { a.name.lowercased().contains($0) } ?? 9)
                     < (order.firstIndex { b.name.lowercased().contains($0) } ?? 9)
             }
+        // Plato de hoy por comida, para poder registrar calorías sin buscarlo al tocar.
+        var dishes: [Int: String] = [:]
+        if let day = (await dp)?.days.first(where: { $0.is_today }) {
+            for m in meals {
+                let n = m.name.lowercased()
+                dishes[m.id] = n.contains("desayuno") ? day.breakfast
+                             : n.contains("merienda") ? day.snack
+                             : n.contains("cena") ? day.dinner : day.lunch
+            }
+        }
         let food = await f
         let weight = (await bw)?.first?.weight ?? Me.fallbackWeight
-        return MealsEntry(date: .now, meals: meals,
+        return MealsEntry(date: .now, meals: meals, dishes: dishes,
                           kcal: food?.total_kcal ?? 0, kcalTarget: Double(Me.kcalTarget(weight: weight)),
                           protein: food?.total_protein ?? 0, proteinTarget: Me.proteinTarget(weight: weight))
     }
@@ -128,7 +129,7 @@ struct MealsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             Divider().overlay(Theme.line)
             VStack(alignment: .leading, spacing: 9) {
-                ForEach(entry.meals.prefix(4)) { HabitCheckRow(habit: $0) }
+                ForEach(entry.meals.prefix(4)) { HabitCheckRow(habit: $0, dish: entry.dishes[$0.id] ?? "") }
                 Spacer(minLength: 0)
             }
             .frame(width: 150, alignment: .leading)
@@ -478,7 +479,7 @@ struct MealsLockView: View {
     var body: some View {
         if let n = next {
             HStack(spacing: 8) {
-                Button(intent: ToggleHabitIntent(id: n.id, done: false)) {
+                Button(intent: ToggleHabitIntent(id: n.id, done: false, dish: entry.dishes[n.id] ?? "")) {
                     Image(systemName: "circle").font(.title3)
                 }.buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 0) {
