@@ -51,6 +51,8 @@ struct PRView: View {
     @State private var addingPR = false
     @State private var addingExercise = false
     @State private var newExercise = ""
+    @State private var showHistory = false
+    @State private var confirmDelete: PRRecord?
 
     var exercises: [String] { records.keys.sorted() }
     var list: [PRRecord] { (records[selected] ?? []).sorted { $0.date < $1.date } }
@@ -102,24 +104,43 @@ struct PRView: View {
                     .card()
                 }
 
-                SectionHeader(title: "Historial")
-                ForEach(list.reversed()) { r in
+                // Historial plegado (discreto): se despliega solo si lo pides.
+                Button {
+                    Haptics.light(); withAnimation { showHistory.toggle() }
+                } label: {
                     HStack {
-                        Text("\(r.weight.clean) kg")
-                            .font(Theme.dHeadline)
-                            .foregroundStyle(Theme.ink)
-                        Spacer()
-                        Text(Fmt.short(r.date))
-                            .font(Theme.dCaption)
+                        Text("Historial · \(list.count) marcas")
+                            .font(Theme.dFootnote)
                             .foregroundStyle(Theme.muted)
-                        Button {
-                            remove(r)
-                        } label: {
-                            Image(systemName: "xmark").font(.system(size: 12, weight: .light)).foregroundStyle(Theme.muted)
-                        }
-                        .padding(.leading, 8)
+                        Spacer()
+                        Image(systemName: showHistory ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 11, weight: .light))
+                            .foregroundStyle(Theme.muted)
                     }
-                    .card(padding: 13)
+                    .padding(.top, 4)
+                }
+                .buttonStyle(.plain)
+
+                if showHistory {
+                    ForEach(list.reversed()) { r in
+                        HStack {
+                            Text("\(r.weight.clean) kg")
+                                .font(Theme.dSubheadline)
+                                .foregroundStyle(Theme.ink)
+                            Spacer()
+                            Text(Fmt.short(r.date))
+                                .font(Theme.dCaption)
+                                .foregroundStyle(Theme.muted)
+                            Button {
+                                Haptics.rigid(); confirmDelete = r
+                            } label: {
+                                Image(systemName: "xmark").font(.system(size: 11, weight: .light)).foregroundStyle(Theme.muted)
+                            }
+                            .padding(.leading, 8)
+                        }
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 4)
+                    }
                 }
             }
 
@@ -138,6 +159,13 @@ struct PRView: View {
                 m[selected, default: []].append(PRRecord(date: date, weight: weight))
                 records = m; PRStore.save(m)
             }
+        }
+        .confirmationDialog("¿Borrar este récord?",
+                            isPresented: Binding(get: { confirmDelete != nil },
+                                                 set: { if !$0 { confirmDelete = nil } }),
+                            presenting: confirmDelete) { r in
+            Button("Borrar \(r.weight.clean) kg", role: .destructive) { remove(r); confirmDelete = nil }
+            Button("Cancelar", role: .cancel) { confirmDelete = nil }
         }
         .alert("Nuevo ejercicio", isPresented: $addingExercise) {
             TextField("Nombre", text: $newExercise)
