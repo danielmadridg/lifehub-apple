@@ -48,6 +48,24 @@ final class Notifs: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// Programa un aviso a la hora de dormir recomendada (se repite cada día
+    /// a esa hora hasta que se cancele o se reprograme).
+    func scheduleBedtime(_ date: Date) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ["bedtime"])
+        let content = UNMutableNotificationContent()
+        content.title = "Hora de dormir"
+        content.body = "Acuéstate ya para llegar a tu objetivo de sueño."
+        content.sound = .default
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
+        center.add(UNNotificationRequest(identifier: "bedtime", content: content, trigger: trigger))
+    }
+
+    func cancelBedtime() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["bedtime"])
+    }
+
     /// Al tocar la notificación, abre WhatsApp en el chat de esa persona.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,

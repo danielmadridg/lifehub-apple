@@ -31,6 +31,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Para analizar tu sueño y constantes y recomendarte la hora de dormir.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Para subir fotos de progreso al Gym.</string>
 	<key>UIAppFonts</key>

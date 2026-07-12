@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Módulos que pueden ir en la barra de navegación (todos menos "Hoy").
 enum NavModule: String, CaseIterable, Identifiable {
-    case gym, nutrition, finance, routines, tasks, mail, calendar, studies, more
+    case gym, nutrition, finance, routines, tasks, mail, calendar, studies, sleep, more
     var id: String { rawValue }
 
     /// Opciones elegibles para la barra ("Más" ya no: vive en el engranaje de Hoy).
@@ -18,6 +18,7 @@ enum NavModule: String, CaseIterable, Identifiable {
         case .mail: return "Correo"
         case .calendar: return "Agenda"
         case .studies: return "Estudios"
+        case .sleep: return "Sueño"
         case .more: return "Más"
         }
     }
@@ -31,6 +32,7 @@ enum NavModule: String, CaseIterable, Identifiable {
         case .mail: return "envelope"
         case .calendar: return "calendar"
         case .studies: return "graduationcap"
+        case .sleep: return "moon.stars"
         case .more: return "square.grid.2x2"
         }
     }
@@ -103,6 +105,7 @@ struct RootView: View {
         case .mail: MailView()
         case .calendar: CalendarView()
         case .studies: StudiesView()
+        case .sleep: SleepView()
         case .more: MoreView()
         }
     }
@@ -122,6 +125,7 @@ struct MoreView: View {
                 MoreLink(icon: "envelope", label: "Correo") { MailView() }
                 MoreLink(icon: "calendar", label: "Agenda") { CalendarView() }
                 MoreLink(icon: "graduationcap", label: "Estudios") { StudiesView() }
+                MoreLink(icon: "moon.stars", label: "Sueño") { SleepView() }
                 MoreLink(icon: "gearshape", label: "Ajustes") { SettingsView() }
             }
         }

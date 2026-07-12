@@ -12,6 +12,10 @@ targets:
     sources:
       - LifeHub
     assets: LifeHub/Assets.xcassets
+    entitlements:
+      path: LifeHub/LifeHub.entitlements
+      properties:
+        com.apple.developer.healthkit: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.daniel.lifehub
@@ -30,6 +34,7 @@ targets:
           # El backend corre por HTTP plano (VPS :8011)
           NSAllowsArbitraryLoads: true
         NSPhotoLibraryUsageDescription: Para subir fotos de progreso al Gym.
+        NSHealthShareUsageDescription: Para analizar tu sueño y constantes y recomendarte la hora de dormir.
         UIUserInterfaceStyle: Dark
         LSApplicationQueriesSchemes:
           - whatsapp
