@@ -140,28 +140,24 @@ struct ClaudeUsageCard: View {
 
     @ViewBuilder
     func row(_ label: String, _ w: ClaudeUsage.Window) -> some View {
-        HStack {
-            Text(label)
-                .font(Theme.dSubheadline)
-                .foregroundStyle(Theme.muted)
-            Spacer()
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(tokens(w.tokens))
-                    .font(Theme.dSubheadline.weight(.semibold))
-                    .foregroundStyle(Theme.ink)
-                if let c = countdown(w.reset) {
-                    Text("reinicia en \(c)")
-                        .font(Theme.dCaption2)
-                        .foregroundStyle(Theme.accent)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(label).font(Theme.dSubheadline).foregroundStyle(Theme.muted)
+                Spacer()
+                Text("\(w.pct)%").font(Theme.dSubheadline.weight(.bold)).foregroundStyle(Theme.ink)
+            }
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.surface2)
+                    Capsule().fill(w.pct >= 90 ? Theme.bad : Theme.accent)
+                        .frame(width: g.size.width * CGFloat(min(w.pct, 100)) / 100)
                 }
             }
+            .frame(height: 5)
+            if let c = countdown(w.reset) {
+                Text("reinicia en \(c)").font(Theme.dCaption2).foregroundStyle(Theme.muted)
+            }
         }
-    }
-
-    func tokens(_ n: Int) -> String {
-        if n >= 1_000_000 { return String(format: "%.1f M tokens", Double(n) / 1_000_000) }
-        if n >= 1_000 { return "\(n / 1000) K tokens" }
-        return "\(n) tokens"
     }
 
     func countdown(_ iso: String?) -> String? {

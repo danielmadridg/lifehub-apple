@@ -417,7 +417,7 @@ struct GoogleURLResponse: Codable {
 // Uso de Claude (lo sube un script del Mac; ver /api/claude/usage).
 struct ClaudeUsage: Codable {
     struct Window: Codable {
-        let tokens: Int
+        let pct: Int
         let reset: String?
     }
     let session: Window?

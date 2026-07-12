@@ -322,16 +322,14 @@ struct ClaudeView: View {
                 Text(label).font(.caption).foregroundStyle(Theme.muted)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text(tokens(w.tokens)).font(.caption.weight(.semibold)).foregroundStyle(Theme.ink)
+                    Text("\(w.pct)%").font(.caption.weight(.bold))
+                        .foregroundStyle(w.pct >= 90 ? Theme.bad : Theme.ink)
                     if let c = countdown(w.reset) {
                         Text(c).font(.caption2).foregroundStyle(Theme.accent)
                     }
                 }
             }
         }
-    }
-    func tokens(_ n: Int) -> String {
-        n >= 1_000_000 ? String(format: "%.1fM", Double(n) / 1_000_000) : "\(n / 1000)K"
     }
     func countdown(_ iso: String?) -> String? {
         guard let d = Fmt.date(iso) else { return nil }
