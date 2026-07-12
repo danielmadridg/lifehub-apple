@@ -86,29 +86,45 @@ struct SleepView: View {
 
     var bedtimePlan: BedtimePlan? {
         let need: TimeInterval = 8 * 3600
-        // Deuda de sueño de las últimas noches (máx 1 ciclo de recuperación).
-        let recent = sleep.history.suffix(5)
-        let debt = recent.reduce(0.0) { $0 + max(0, need - $1.asleep) }
-        let recovery = min(debt * 0.4, BedtimeEngine.cycle)
-
-        // Despertar: antes del primer evento de mañana (con 45 min de margen),
-        // o 08:00 por defecto. La alarma cae al FINAL de un ciclo (fase ligera).
+        let cycle = sleep.cycleLen                       // TU ciclo (de tus REM)
+        let latency = BedtimeEngine.latency
         let cal = Calendar.current
         let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
+
+        // Deuda de sueño de las últimas noches + recuperación por HRV/pulso.
+        let recent = sleep.history.suffix(5)
+        let debt = recent.reduce(0.0) { $0 + max(0, need - $1.asleep) }
+        let recovery = min(debt * 0.4, cycle) + (sleep.recoveryPoor ? cycle : 0)
+
+        // Nº de ciclos (4–6) según objetivo + recuperación.
+        let n = max(4, min(6, Int(((need + recovery) / cycle).rounded())))
+
+        // Despertar: 1) primer evento de mañana −45 min; 2) tu ritmo natural
+        //  (cronotipo); 3) 08:00. La alarma cae al final de un ciclo.
         var wake = cal.date(bySettingHour: 8, minute: 0, second: 0, of: tomorrow)!
         var reasonEvent = "despertar 08:00"
-        if let ev = tomorrowFirst, let start = Fmt.date(ev.start), hasTime(ev.start) {
-            let candidate = start.addingTimeInterval(-45 * 60)
-            if candidate < wake { wake = candidate; reasonEvent = "listo para «\(ev.title)»" }
+        if let ev = tomorrowFirst, let start = Fmt.date(ev.start), hasTime(ev.start),
+           start.addingTimeInterval(-45 * 60) < wake {
+            wake = start.addingTimeInterval(-45 * 60)
+            reasonEvent = "listo para «\(ev.title)»"
+        } else {
+            let midH = UserDefaults.standard.double(forKey: "sleep_mid_h")
+            if midH > 0 {
+                let clk = midH.truncatingRemainder(dividingBy: 24)
+                if let mid = cal.date(bySettingHour: Int(clk), minute: Int((clk - floor(clk)) * 60), second: 0, of: tomorrow) {
+                    wake = mid.addingTimeInterval(Double(n) * cycle / 2)   // centro + medio sueño
+                    reasonEvent = "según tu ritmo natural"
+                }
+            }
         }
-        let n = BedtimeEngine.cyclesFor(need: need, recovery: recovery)
-        let total = BedtimeEngine.latency + Double(n) * BedtimeEngine.cycle
-        let bedtime = wake.addingTimeInterval(-total)
-        let h = Int((Double(n) * BedtimeEngine.cycle) / 3600)
-        let m = Int((Double(n) * BedtimeEngine.cycle).truncatingRemainder(dividingBy: 3600) / 60)
-        let mm = m > 0 ? " \(m)min" : ""
+
+        let bedtime = wake.addingTimeInterval(-(latency + Double(n) * cycle))
+        let cmin = Int(cycle / 60)
+        let h = Int((Double(n) * cycle) / 3600)
+        let m = Int((Double(n) * cycle).truncatingRemainder(dividingBy: 3600) / 60)
+        let rec = sleep.recoveryPoor ? " · +1 ciclo (recuperación baja)" : ""
         return BedtimePlan(bedtime: bedtime, alarm: wake,
-                           reason: "\(n) ciclos (~\(h)h\(mm)) + 15 min para dormirte · \(reasonEvent)")
+                           reason: "\(n) ciclos de \(cmin) min (~\(h)h\(m > 0 ? " \(m)m" : "")) + 15 min\(rec) · \(reasonEvent)")
     }
 
     func firstEventTomorrow(_ events: [CalendarEvent]) -> CalendarEvent? {

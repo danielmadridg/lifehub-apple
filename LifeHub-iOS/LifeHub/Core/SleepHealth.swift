@@ -17,6 +17,7 @@ struct SleepNight {
     var avgResp: Double?
     var wristTemp: Double?
     var avgSpO2: Double?
+    var remEpisodes: Int = 0
 
     var efficiency: Double { inBed > 0 ? min(1, asleep / inBed) : 0 }
 }
@@ -34,6 +35,10 @@ final class SleepManager: ObservableObject {
     @Published var history: [SleepHistoryNight] = []
     @Published var loaded = false
     @Published var denied = false
+    // Ciencia personalizada
+    @Published var cycleLen: TimeInterval = 90 * 60   // tu ciclo (de tus REM)
+    @Published var recoveryPoor = false               // HRV baja / pulso alto anoche
+    @Published var chronoWake: Date?                  // despertar natural (cronotipo)
 
     private let store = HKHealthStore()
 
@@ -67,7 +72,50 @@ final class SleepManager: ObservableObject {
         if let samples = try? await sleepSamples(from: now.addingTimeInterval(-8 * 86400), to: now) {
             history = groupHistory(samples)
         }
+        if let n = lastNight { analyze(n) }
         loaded = true
+    }
+
+    /// Deriva ciencia personalizada de la última noche + líneas base guardadas.
+    private func analyze(_ n: SleepNight) {
+        let d = UserDefaults.standard
+
+        // 1) Ciclo personalizado = tiempo dormido / episodios REM (uno por ciclo),
+        //    acotado a 80–110 min y suavizado con lo anterior.
+        if n.remEpisodes >= 2 {
+            let raw = min(110 * 60, max(80 * 60, n.asleep / Double(n.remEpisodes)))
+            let prev = d.double(forKey: "sleep_cycle_secs")
+            let blended = prev > 0 ? 0.6 * prev + 0.4 * raw : raw
+            d.set(blended, forKey: "sleep_cycle_secs")
+            cycleLen = blended
+        } else {
+            cycleLen = d.double(forKey: "sleep_cycle_secs") > 0 ? d.double(forKey: "sleep_cycle_secs") : 90 * 60
+        }
+
+        // 2) Recuperación: compara HRV y pulso mínimo de anoche con tu línea base
+        //    (EMA). HRV baja o pulso alto → mala recuperación → +1 ciclo esta noche.
+        recoveryPoor = false
+        if let hrv = n.avgHRV, hrv > 0 {
+            let base = d.double(forKey: "sleep_hrv_base")
+            if base > 0 && hrv < 0.85 * base { recoveryPoor = true }
+            d.set(base > 0 ? 0.8 * base + 0.2 * hrv : hrv, forKey: "sleep_hrv_base")
+        }
+        if let hr = n.minHR, hr > 0 {
+            let base = d.double(forKey: "sleep_hr_base")
+            if base > 0 && hr > 1.06 * base { recoveryPoor = true }
+            d.set(base > 0 ? 0.8 * base + 0.2 * hr : hr, forKey: "sleep_hr_base")
+        }
+        d.set(recoveryPoor ? cycleLen : 0, forKey: "sleep_recovery_extra_secs")
+
+        // 3) Cronotipo: punto medio de sueño (EMA en "horas tras mediodía" para
+        //    evitar el salto de medianoche). Define tu ventana natural.
+        let cal = Calendar.current
+        let mid = n.start.addingTimeInterval(n.end.timeIntervalSince(n.start) / 2)
+        var h = Double(cal.component(.hour, from: mid)) + Double(cal.component(.minute, from: mid)) / 60
+        if h < 12 { h += 24 }                    // 3:00 → 27.0
+        let prevMid = d.double(forKey: "sleep_mid_h")
+        let midH = prevMid > 0 ? 0.7 * prevMid + 0.3 * h : h
+        d.set(midH, forKey: "sleep_mid_h")
     }
 
     // ── Construcción de la noche ──────────────────────────────────────────────
@@ -81,6 +129,16 @@ final class SleepManager: ObservableObject {
         ]
         var deep = 0.0, rem = 0.0, core = 0.0, awake = 0.0, asleep = 0.0, inBed = 0.0
         var minStart = Date.distantFuture, maxEnd = Date.distantPast
+        // Cuenta episodios REM (transición no-REM → REM) para estimar tu ciclo.
+        var remEpisodes = 0, prevWasREM = false
+        for s in samples.sorted(by: { $0.startDate < $1.startDate }) {
+            let isREM = s.value == HKCategoryValueSleepAnalysis.asleepREM.rawValue
+            if isREM && !prevWasREM { remEpisodes += 1 }
+            if isREM || s.value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue
+                || s.value == HKCategoryValueSleepAnalysis.asleepCore.rawValue {
+                prevWasREM = isREM
+            }
+        }
         for s in samples {
             let dur = s.endDate.timeIntervalSince(s.startDate)
             switch s.value {
@@ -104,6 +162,7 @@ final class SleepManager: ObservableObject {
 
         var n = SleepNight(start: start, end: end, inBed: bed, asleep: asleep,
                            deep: deep, rem: rem, core: core, awake: awake)
+        n.remEpisodes = remEpisodes
         n.avgHR = await stat(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), from: start, to: end, op: .discreteAverage)
         n.minHR = await stat(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), from: start, to: end, op: .discreteMin)
         n.avgHRV = await stat(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli), from: start, to: end, op: .discreteAverage)
