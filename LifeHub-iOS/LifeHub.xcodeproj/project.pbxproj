@@ -14,6 +14,7 @@
 		17E51823C0BC48F4D3C1F1C1 /* GymView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D78C1E9329F151B1056927 /* GymView.swift */; };
 		2323A22762918D2172063FD0 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B3805422377429A64D2C6 /* Keychain.swift */; };
 		23C1EA266A08E57D77A65380 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A55DCCB460DE27EA384813C /* Assets.xcassets */; };
+		28508D4DD1CE558BB027036D /* LifeHubWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D447CA2FE18E50C87BF03FC /* LifeHubWidgets.swift */; };
 		2C8F72A93A1E6AF101957AA3 /* LifeHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369926010C3173D2CCEC448C /* LifeHubApp.swift */; };
 		303EE4B1F266DA3553374572 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886756A0D1AC6D7310215C16 /* AppLinks.swift */; };
 		306440B16D1CA5ECFB81BCC3 /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8A17E17D5BD8BC347A5F50 /* RoutinesView.swift */; };
@@ -22,6 +23,7 @@
 		49AC3E4F2F95D7A0AE303134 /* StudiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460480BDE0779A2DC333C487 /* StudiesView.swift */; };
 		49FF2A953E67B7EDD034BB88 /* DMSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4531FF2A146305E6A00BFF73 /* DMSans-SemiBold.ttf */; };
 		4E7F25E862CED67D008BC7D1 /* GymOverallProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9783752564D0D87AD097B2 /* GymOverallProgressView.swift */; };
+		4F32AABADAF2C40984DC74E6 /* LifeHubWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		543ADA0ADEB1743F9A54CFCB /* GymHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20740795A95C4FB9CC690002 /* GymHealthView.swift */; };
 		59AD1389652775679CC91DE3 /* Me.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9595279D6D2FB5739C65A80 /* Me.swift */; };
 		6116ED645341C3ADD48C4EFB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E59ADB0C674A664536FDA5 /* Theme.swift */; };
@@ -30,8 +32,10 @@
 		8B736AEE1AB6B89C250AF182 /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4D9A57AA2B51B68B09303A4B /* DMSans-Regular.ttf */; };
 		8BCC803A92DC9B466825B90E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = F423D3B16C70AA07A87DF0DD /* Notifications.swift */; };
 		90EC993FE0D97724085C2908 /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941F31B5D8CB075E85DA95B5 /* FinanceView.swift */; };
+		97BD496462EE0E7D214B0EC1 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DD10A054DCBB9A91550710 /* Endpoints.swift */; };
 		9BB8A9655A4E5B542A73A00F /* RoutineManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E84AF113B98EE123B0887BC /* RoutineManagerView.swift */; };
 		A146E110819671615D954F40 /* BedtimeIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44809E433C58792C7847E022 /* BedtimeIntents.swift */; };
+		A815915528A07E735B66A89C /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B256F69F68CAC92B0847C4 /* Models.swift */; };
 		BE3BC8EA231ACD9644F1E464 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155117F5227D016AB83797FA /* Components.swift */; };
 		BFC5FF771B123691916B5B77 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B256F69F68CAC92B0847C4 /* Models.swift */; };
 		C08E87BDE3D594A9395BA96D /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C0362133DE518DA3B0738D /* TasksView.swift */; };
@@ -40,13 +44,39 @@
 		CE9B38C317D2103532B3E7D6 /* GymTrainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4D56EDD5AFDE4A309197D0 /* GymTrainView.swift */; };
 		D21E7CE7780713137FA2318D /* GymProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE20BB3D74BE9D3BF14EEAF2 /* GymProgressView.swift */; };
 		D3886A0AC4CCC758E865760B /* Fraunces-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9371C93EB9B366D0D65AC57F /* Fraunces-Regular.ttf */; };
+		D4AE2B30DAAB5B428F5ACB3F /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E59ADB0C674A664536FDA5 /* Theme.swift */; };
 		D50FE09B6AB1D85D8C560256 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B998A2483F0418307D1CBB6 /* CalendarView.swift */; };
 		D9DD0979EF8AFFD219064954 /* Fraunces-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4BB8205FC32F67B6460CA4B0 /* Fraunces-SemiBold.ttf */; };
 		E4F27C27444D13C33D8683A8 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA8E90D1B9237D3E72B3B2E /* RootView.swift */; };
 		E5FD9B9F406AD5A30A5D12EC /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EE0D43E2F8F314A2217777 /* MailView.swift */; };
 		E7C314B6BB12752AECAE35B0 /* Endpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DD10A054DCBB9A91550710 /* Endpoints.swift */; };
 		EB62395A0743504F315876F0 /* Fraunces-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 02FB6B03E095420EFDDA2EAA /* Fraunces-Bold.ttf */; };
+		F798AA46F027FCCD691F76B1 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760FFCF2C87B885444011A11 /* APIClient.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		208BD01ECEB258E4B58ACC30 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1F122FC34E5FD023F496B2A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3483FFAEC6801B3883CD99C5;
+			remoteInfo = LifeHubWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		44EA61BCB9A3F03B2BDB3B42 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4F32AABADAF2C40984DC74E6 /* LifeHubWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		02FB6B03E095420EFDDA2EAA /* Fraunces-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-Bold.ttf"; sourceTree = "<group>"; };
@@ -58,8 +88,10 @@
 		14C0362133DE518DA3B0738D /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		155117F5227D016AB83797FA /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		1A7D9A27D8FB53778E62B80D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1E39D6330E1E802F64058BC8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		20740795A95C4FB9CC690002 /* GymHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymHealthView.swift; sourceTree = "<group>"; };
 		25EE0D43E2F8F314A2217777 /* MailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
+		2D447CA2FE18E50C87BF03FC /* LifeHubWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeHubWidgets.swift; sourceTree = "<group>"; };
 		32D78C1E9329F151B1056927 /* GymView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymView.swift; sourceTree = "<group>"; };
 		35E59ADB0C674A664536FDA5 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		369926010C3173D2CCEC448C /* LifeHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeHubApp.swift; sourceTree = "<group>"; };
@@ -72,6 +104,7 @@
 		4A9783752564D0D87AD097B2 /* GymOverallProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymOverallProgressView.swift; sourceTree = "<group>"; };
 		4BB8205FC32F67B6460CA4B0 /* Fraunces-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Fraunces-SemiBold.ttf"; sourceTree = "<group>"; };
 		4D9A57AA2B51B68B09303A4B /* DMSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSans-Regular.ttf"; sourceTree = "<group>"; };
+		4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LifeHubWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		569D4529F774C1CED3E7AAD1 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
 		6B998A2483F0418307D1CBB6 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		760FFCF2C87B885444011A11 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -184,10 +217,20 @@
 			path = Gym;
 			sourceTree = "<group>";
 		};
+		81510E6A0587B00D1DC891C4 /* LifeHubWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				1E39D6330E1E802F64058BC8 /* Info.plist */,
+				2D447CA2FE18E50C87BF03FC /* LifeHubWidgets.swift */,
+			);
+			path = LifeHubWidgets;
+			sourceTree = "<group>";
+		};
 		8177E4B7E8CE208A466E9666 = {
 			isa = PBXGroup;
 			children = (
 				6A60CF75E0CC831E605A609A /* LifeHub */,
+				81510E6A0587B00D1DC891C4 /* LifeHubWidgets */,
 				F8A5CD15100BD105157AA24D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -258,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				D2334E81A3E17D14AA0DF0E9 /* LifeHub.app */,
+				4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -265,16 +309,35 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3483FFAEC6801B3883CD99C5 /* LifeHubWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15DE33D2D0D24FFDF202CBA2 /* Build configuration list for PBXNativeTarget "LifeHubWidgets" */;
+			buildPhases = (
+				C4C73EEBD83D1E56C9093620 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LifeHubWidgets;
+			packageProductDependencies = (
+			);
+			productName = LifeHubWidgets;
+			productReference = 4E92B1E74A1A977310AECE90 /* LifeHubWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		CBFA8B653EEADD8A4BB40D21 /* LifeHub */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A456AF1BC06CF497140E7E0A /* Build configuration list for PBXNativeTarget "LifeHub" */;
 			buildPhases = (
 				9032BDBE59CDD61B7D3DF1DF /* Sources */,
 				CFA91B7C6A0AA9787DD452E5 /* Resources */,
+				44EA61BCB9A3F03B2BDB3B42 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				05D786F24803AAF818290666 /* PBXTargetDependency */,
 			);
 			name = LifeHub;
 			packageProductDependencies = (
@@ -309,6 +372,7 @@
 			projectRoot = "";
 			targets = (
 				CBFA8B653EEADD8A4BB40D21 /* LifeHub */,
+				3483FFAEC6801B3883CD99C5 /* LifeHubWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -370,7 +434,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C4C73EEBD83D1E56C9093620 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F798AA46F027FCCD691F76B1 /* APIClient.swift in Sources */,
+				97BD496462EE0E7D214B0EC1 /* Endpoints.swift in Sources */,
+				28508D4DD1CE558BB027036D /* LifeHubWidgets.swift in Sources */,
+				A815915528A07E735B66A89C /* Models.swift in Sources */,
+				D4AE2B30DAAB5B428F5ACB3F /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		05D786F24803AAF818290666 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3483FFAEC6801B3883CD99C5 /* LifeHubWidgets */;
+			targetProxy = 208BD01ECEB258E4B58ACC30 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		60D78E85A493F54E78DEA195 /* Debug */ = {
@@ -514,6 +598,42 @@
 			};
 			name = Release;
 		};
+		D513EE2BA429897387BBDF0F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = LifeHubWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daniel.lifehub.widgets;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		D715F73A421A0A00B952EE2E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = LifeHubWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daniel.lifehub.widgets;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		E92F7CB2D976E4ADACA7F22B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -544,6 +664,15 @@
 			buildConfigurations = (
 				60D78E85A493F54E78DEA195 /* Debug */,
 				83F887A25DFBA237D3BC0D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		15DE33D2D0D24FFDF202CBA2 /* Build configuration list for PBXNativeTarget "LifeHubWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D715F73A421A0A00B952EE2E /* Debug */,
+				D513EE2BA429897387BBDF0F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

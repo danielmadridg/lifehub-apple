@@ -16,6 +16,8 @@ targets:
       path: LifeHub/LifeHub.entitlements
       properties:
         com.apple.developer.healthkit: true
+    dependencies:
+      - target: LifeHubWidgets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.daniel.lifehub
@@ -48,3 +50,26 @@ targets:
           - DMSans-Medium.ttf
           - DMSans-SemiBold.ttf
           - DMSans-Bold.ttf
+
+  LifeHubWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - LifeHubWidgets
+      - LifeHub/Core/APIClient.swift
+      - LifeHub/Core/Endpoints.swift
+      - LifeHub/Core/Models.swift
+      - LifeHub/Core/Theme.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.daniel.lifehub.widgets
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"
+    info:
+      path: LifeHubWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Life Hub
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension

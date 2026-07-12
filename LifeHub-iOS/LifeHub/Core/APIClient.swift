@@ -20,7 +20,9 @@ final class API {
 
     let baseURL = "https://dmghub.app"
 
-    var token = ""
+    // Clave por defecto: así los widgets y App Intents están autenticados sin
+    // depender del arranque de la app.
+    var token = "BpbEXYlKaUh04zTMydiIzmJ0G32TARTR"
 
     private let session: URLSession = {
         let cfg = URLSessionConfiguration.default
