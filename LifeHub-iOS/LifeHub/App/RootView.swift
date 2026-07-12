@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 /// Módulos que pueden ir en la barra de navegación (todos menos "Hoy").
 enum NavModule: String, CaseIterable, Identifiable {
@@ -71,6 +72,13 @@ struct RootView: View {
         .onChange(of: tab) { _, _ in Haptics.selection() }
         .onChange(of: slotsRaw) { _, _ in
             if !orderedTags.contains(tab) { tab = "home" }
+        }
+        .onAppear { WidgetCenter.shared.reloadAllTimelines() }
+        .onOpenURL { url in
+            // Deep link desde un widget: lifehub://open?m=<módulo>
+            guard let m = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "m" })?.value else { return }
+            tab = orderedTags.contains(m) ? m : "home"
         }
         .simultaneousGesture(
             // Deslizar horizontal cambia de pestaña. Umbral suave: basta con que

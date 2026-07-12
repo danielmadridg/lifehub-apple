@@ -10,8 +10,34 @@ struct ToggleHabitIntent: AppIntent {
     init() {}
     init(id: Int, done: Bool) { self.id = id; self.done = done }
     func perform() async throws -> some IntentResult {
-        if done { _ = try? await API.shared.undoDone(id) } else { _ = try? await API.shared.markDone(id) }
+        if done {
+            _ = try? await API.shared.undoDone(id)
+            // Si es una comida, quita también sus calorías del resumen.
+            if let dish = await Self.dishFor(id),
+               let food = try? await API.shared.foodDay(),
+               let item = food.items.last(where: { $0.name == dish }) {
+                _ = try? await API.shared.removeFood(item.id)
+            }
+        } else {
+            _ = try? await API.shared.markDone(id)
+            // Si es una comida, suma sus calorías al resumen (registra el plato).
+            if let dish = await Self.dishFor(id) { _ = try? await API.shared.dietLogMeal(dish) }
+        }
         return .result()
+    }
+
+    /// Plato de hoy que corresponde al hábito de comida (nil si no es comida).
+    static func dishFor(_ id: Int) async -> String? {
+        guard let habits = try? await API.shared.today(),
+              let h = habits.first(where: { $0.id == id }), h.category == .diet,
+              let plan = try? await API.shared.dietPlan(),
+              let day = plan.days.first(where: { $0.is_today }) else { return nil }
+        let n = h.name.lowercased()
+        if n.contains("desayuno") { return day.breakfast }
+        if n.contains("merienda") { return day.snack }
+        if n.contains("cena") { return day.dinner }
+        if n.contains("comida") || n.contains("almuerzo") { return day.lunch }
+        return nil
     }
 }
 
@@ -112,8 +138,9 @@ struct MealsView: View {
 
 struct MealsWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "MealsWidget", provider: MealsProvider()) { entry in
+        StaticConfiguration(kind: "MealsWidgetV2", provider: MealsProvider()) { entry in
             MealsView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=nutrition"))
         }
         .configurationDisplayName("Comida")
         .description("Macros del día y tus comidas con un toque.")
@@ -161,6 +188,7 @@ struct RoutinesWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "RoutinesWidget", provider: HabitsProvider()) { entry in
             RoutinesView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=routines"))
         }
         .configurationDisplayName("Rutinas")
         .description("Marca tus rutinas del día.")
@@ -227,6 +255,7 @@ struct WorkoutWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "WorkoutWidget", provider: WorkoutProvider()) { entry in
             WorkoutWidgetView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=gym"))
         }
         .configurationDisplayName("Entreno de hoy")
         .description("Qué toca hoy y tu progreso respecto al último entreno.")
@@ -285,6 +314,7 @@ struct ClaudeWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "ClaudeWidget", provider: ClaudeProvider()) { entry in
             ClaudeWidgetView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=studies"))
         }
         .configurationDisplayName("Uso de Claude")
         .description("Uso de sesión y semanal.")
@@ -328,6 +358,7 @@ struct StudyWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "StudyWidget", provider: StudyProvider()) { entry in
             StudyWidgetView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=studies"))
         }
         .configurationDisplayName("Estudios · IA")
         .description("El resumen de estudios que genera la IA.")
@@ -389,10 +420,87 @@ struct AgendaWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "AgendaWidget", provider: AgendaProvider()) { entry in
             AgendaWidgetView(entry: entry).containerBackground(Theme.bg, for: .widget)
+                .widgetURL(URL(string: "lifehub://open?m=calendar"))
         }
         .configurationDisplayName("Agenda")
         .description("Si tienes algo hoy.")
         .supportedFamilies([.systemSmall])
+    }
+}
+
+// ── PANTALLA DE BLOQUEO ──────────────────────────────────────────────────────
+struct CreatineLockView: View {
+    let entry: HabitsEntry
+    @Environment(\.widgetFamily) private var family
+    var c: Habit? { entry.habits.first { $0.name.lowercased().contains("creatina") } }
+    var body: some View {
+        if let c {
+            switch family {
+            case .accessoryCircular:
+                ZStack {
+                    AccessoryWidgetBackground()
+                    Button(intent: ToggleHabitIntent(id: c.id, done: c.done_today)) {
+                        Image(systemName: c.done_today ? "checkmark" : "pills.fill").font(.title2)
+                    }.buttonStyle(.plain)
+                }
+            case .accessoryInline:
+                Label(c.done_today ? "Creatina ✓" : "Creatina", systemImage: "pills.fill")
+            default:
+                HStack {
+                    Button(intent: ToggleHabitIntent(id: c.id, done: c.done_today)) {
+                        Image(systemName: c.done_today ? "checkmark.circle.fill" : "circle").font(.title3)
+                    }.buttonStyle(.plain)
+                    Text(c.done_today ? "Creatina hecha" : "Creatina").font(.headline)
+                    Spacer()
+                }
+            }
+        } else {
+            Label("Creatina", systemImage: "pills.fill")
+        }
+    }
+}
+
+struct CreatineWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CreatineLock", provider: HabitsProvider()) { entry in
+            CreatineLockView(entry: entry)
+        }
+        .configurationDisplayName("Creatina")
+        .description("Marca la creatina desde la pantalla de bloqueo.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+struct MealsLockView: View {
+    let entry: MealsEntry
+    var next: Habit? { entry.meals.first { !$0.done_today } }
+    var done: Int { entry.meals.filter(\.done_today).count }
+    var body: some View {
+        if let n = next {
+            HStack(spacing: 8) {
+                Button(intent: ToggleHabitIntent(id: n.id, done: false)) {
+                    Image(systemName: "circle").font(.title3)
+                }.buttonStyle(.plain)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Marcar comida (\(done)/\(entry.meals.count))").font(.caption2)
+                    Text(n.name).font(.headline).lineLimit(1)
+                }
+                Spacer()
+            }
+        } else {
+            Label("Comidas al día ✓", systemImage: "fork.knife")
+        }
+    }
+}
+
+struct MealsLockWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "MealsLock", provider: MealsProvider()) { entry in
+            MealsLockView(entry: entry)
+        }
+        .configurationDisplayName("Comida (bloqueo)")
+        .description("Marca la siguiente comida desde la pantalla de bloqueo.")
+        .supportedFamilies([.accessoryRectangular])
     }
 }
 
@@ -406,5 +514,7 @@ struct LifeHubWidgetBundle: WidgetBundle {
         ClaudeWidget()
         AgendaWidget()
         StudyWidget()
+        CreatineWidget()
+        MealsLockWidget()
     }
 }

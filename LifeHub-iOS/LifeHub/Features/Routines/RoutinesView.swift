@@ -128,14 +128,32 @@ struct HabitRow: View {
     func toggle() async {
         busy = true
         defer { busy = false }
+        let willBeDone = !habit.done_today
         do {
             let updated = habit.done_today
                 ? try await API.shared.undoDone(habit.id)
                 : try await API.shared.markDone(habit.id)
-            if !habit.done_today { Haptics.success() } else { Haptics.light() }
+            if willBeDone { Haptics.success() } else { Haptics.light() }
             onUpdate(updated)
+            // Si es una comida, suma/quita sus calorías del resumen.
+            if habit.category == .diet { await syncMeal(markingDone: willBeDone) }
         } catch {
             Haptics.warning()
+        }
+    }
+
+    private func syncMeal(markingDone: Bool) async {
+        guard let plan = try? await API.shared.dietPlan(),
+              let day = plan.days.first(where: { $0.is_today }) else { return }
+        let n = habit.name.lowercased()
+        let dish = n.contains("desayuno") ? day.breakfast
+                 : n.contains("merienda") ? day.snack
+                 : n.contains("cena") ? day.dinner : day.lunch
+        if markingDone {
+            _ = try? await API.shared.dietLogMeal(dish)
+        } else if let food = try? await API.shared.foodDay(),
+                  let item = food.items.last(where: { $0.name == dish }) {
+            _ = try? await API.shared.removeFood(item.id)
         }
     }
 }
